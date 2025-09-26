@@ -5,7 +5,9 @@ from pymilvus import MilvusClient, DataType
 import os
 import torch
 
-load_dotenv(".env")
+if (os.environ.get("ENVIRONMENT") == "DEV"):
+    load_dotenv(".env")
+
 hf_token = os.environ.get("HF_TOKEN")
 db_url = os.environ.get("DB")
 

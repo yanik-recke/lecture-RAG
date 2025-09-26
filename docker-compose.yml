@@ -7,8 +7,9 @@ services:
       context: service_embedding/
       dockerfile: Dockerfile
     environment:
-      -HF_TOKEN=
-      -DB=http://localhost:19530
+      - HF_TOKEN=
+      - DB=http://localhost:19530
+      - ENVIRONMENT=NOTDEV
     ulimits:
       stack: 67108864
       memlock: -1
