@@ -18,3 +18,9 @@ Retrieval Service: Spring AI
 
 # Hardware
 [Nvidia Jetson Orin Nano](https://www.nvidia.com/de-de/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/)
+
+
+# How to run
+Make sure to include the hugging face token in the Docker Compose file to get access to the embedding model.
+
+The compose file is configured for usage on the Orin Jetson Nano device, as is the embedding server.

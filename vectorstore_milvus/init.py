@@ -7,7 +7,7 @@ from pymilvus import MilvusClient, DataType
 # Make sure to include the correct destination in the client creation.
 # ========================
 
-client = MilvusClient("http://localhost:19530", timeout=10_000)
+client = MilvusClient("http://192.168.55.1:19530", timeout=10)
 
 schema = MilvusClient.create_schema();
 
