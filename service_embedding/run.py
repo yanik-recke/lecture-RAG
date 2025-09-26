@@ -1,5 +1,6 @@
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
 import os
 import torch
 
@@ -12,20 +13,26 @@ setattr(torch.distributed, "is_initialized", lambda : False)
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-model = SentenceTransformer("google/embeddinggemma-300m", token="")
-
+model = SentenceTransformer("google/embeddinggemma-300m", token=hf_token)
 model.to(device)
 
 
-while True:
-    query = input()
-    documents = [
-        "Venus is often called Earth's twin because of its similar size and proximity.",
-        "Mars, known for its reddish appearance, is often referred to as the Red Planet.",
-        "Jupiter, the largest planet in our solar system, has a prominent red spot.",
-        "Saturn, famous for its rings, is sometimes mistaken for the Red Planet."
-    ]
+app = Flask(__name__)
 
-    query_embeddings = model.encode_query(query)
-    document_embeddings = model.encode_document(documents)
-    print(query_embeddings.shape, document_embeddings.shape)
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'healthy'})
+
+@app.route('/embed', methods=['POST'])
+def embed_text():
+    data = request.get_json()
+    text = data.get('text', '')
+
+    if not text:
+        return jsonify({'error': 'No text provided'}), 400
+
+    embeddings = model.encode_query(text)
+    return jsonify({'embeddings': embeddings.tolist()})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8001, debug=True)
