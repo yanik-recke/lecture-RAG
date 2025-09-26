@@ -1,6 +1,29 @@
 version: '3.5'
 
 services:
+
+  # TODO test
+  embedding:
+    container_name: service-embedding
+    build:
+      context: service_embedding/
+      dockerfile: Dockerfile
+      ulimits:
+        stack: 67108864
+        memlock: -1
+    volumes:
+      - ~./cache/huggingface/hub:root/.cache/huggingface/hub
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "8001:8001"
+
   etcd:
     container_name: milvus-etcd
     image: quay.io/coreos/etcd:v3.5.18
