@@ -8,8 +8,11 @@
 # Techstack
 Frontend: Svelte
 Speech-To-Text: [primeline/whisper-large-v3-turbo-german](https://huggingface.co/primeline/whisper-large-v3-german)
+
 Vector Store: milvus
+
 Embedding: [google/embeddinggemma-300m](https://huggingface.co/google/embeddinggemma-300m)
+
 Retrieval Service: Spring AI
 
 # Hardware
