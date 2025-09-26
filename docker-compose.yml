@@ -1,5 +1,3 @@
-version: '3.5'
-
 services:
 
   # TODO test
@@ -89,8 +87,7 @@ services:
     depends_on:
       - "etcd"
       - "minio"
-      - embedding:
-        condition: service_started
+      - "embedding"
 
 networks:
   default:
