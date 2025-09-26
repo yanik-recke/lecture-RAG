@@ -21,7 +21,7 @@ model = SentenceTransformer("google/embeddinggemma-300m", token=hf_token)
 model.to(device)
 
 # DB client initialization
-client = MilvusClient(db_url, timeout=10_000)
+client = MilvusClient(db_url, timeout=10)
 
 app = Flask(__name__)
 
