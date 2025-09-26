@@ -12,7 +12,7 @@ services:
         stack: 67108864
         memlock: -1
     volumes:
-      - ~./cache/huggingface/hub:root/.cache/huggingface/hub
+      - ~./cache/huggingface/hub:/root/.cache/huggingface/hub
     ipc: host
     deploy:
       resources:
@@ -40,6 +40,9 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    depends_on:
+      embedding:
+        condition: service_started
 
   minio:
     container_name: milvus-minio
@@ -58,6 +61,9 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    depends_on:
+      embedding:
+        condition: service_started
 
   standalone:
     container_name: milvus-standalone
@@ -83,6 +89,8 @@ services:
     depends_on:
       - "etcd"
       - "minio"
+      - embedding:
+        condition: service_started
 
 networks:
   default:
