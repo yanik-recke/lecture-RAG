@@ -1,0 +1,8 @@
+.env
+ssd
+.DS_Store
+
+volumes/
+
+*.log
+*.tmp
