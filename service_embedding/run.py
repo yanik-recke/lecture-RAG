@@ -19,7 +19,7 @@ model = SentenceTransformer("google/embeddinggemma-300m", token=hf_token)
 model.to(device)
 
 # DB client initialization
-client = MilvusClient("http://localhost:19530", timeout=10_000)
+client = MilvusClient(db_url, timeout=10_000)
 
 app = Flask(__name__)
 
