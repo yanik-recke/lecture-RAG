@@ -1,11 +1,13 @@
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from pymilvus import MilvusClient, DataType
 import os
 import torch
 
 load_dotenv(".env")
 hf_token = os.environ.get("HF_TOKEN")
+db_url = os.environ.get("DB")
 
 # Needed due to an issue with torch 
 # https://stackoverflow.com/questions/72641886/attributeerror-module-torch-distributed-has-no-attribute-is-initialized-in
@@ -16,6 +18,8 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 model = SentenceTransformer("google/embeddinggemma-300m", token=hf_token)
 model.to(device)
 
+# DB client initialization
+client = MilvusClient("http://localhost:19530", timeout=10_000)
 
 app = Flask(__name__)
 
@@ -32,6 +36,17 @@ def embed_text():
         return jsonify({'error': 'No text provided'}), 400
 
     embeddings = model.encode_query(text)
+
+    res = client.insert(
+        collection_name="snippets",
+        data={
+            'vector': embeddings.tolist()
+        }
+    )
+
+    if res.get('insert_count') < 1:
+        return jsonify({'error': 'Embeddings created, but not inserted into vector store'}), 400
+
     return jsonify({'embeddings': embeddings.tolist()})
 
 if __name__ == '__main__':

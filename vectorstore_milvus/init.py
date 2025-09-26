@@ -23,7 +23,7 @@ schema.add_field(
 schema.add_field(
     field_name="vector",
     datatype=DataType.FLOAT_VECTOR,
-    dim=256,
+    dim=768,
 )
 
 client.create_collection(
