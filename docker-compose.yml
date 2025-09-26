@@ -6,11 +6,11 @@ services:
     build:
       context: service_embedding/
       dockerfile: Dockerfile
-      ulimits:
-        stack: 67108864
-        memlock: -1
+    ulimits:
+      stack: 67108864
+      memlock: -1
     volumes:
-      - ~./cache/huggingface/hub:/root/.cache/huggingface/hub
+      - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
     ipc: host
     deploy:
       resources:
