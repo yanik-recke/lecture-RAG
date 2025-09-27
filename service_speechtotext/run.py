@@ -1,5 +1,6 @@
 import torch
 import io
+import librosa
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline, GenerationConfig
 from flask import Flask, request, jsonify
 
@@ -42,8 +43,8 @@ def transcribe():
 
     if file:
         audio_data = file.read()
-        audio_stream = io.BytesIO(audio_data)
-        result = pipe(audio_stream, generate_kwargs={'language': 'german'})
+        audio_array, _ = librosa.load(io.BytesIO(audio_data))
+        result = pipe(audio_array, generate_kwargs={'language': 'german'})
         return jsonify({'result': result['text']})
 
 if __name__ == '__main__':
