@@ -1,7 +1,7 @@
 import torch
-import io
-import librosa
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline, GenerationConfig
+import time
+import os
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from flask import Flask, request, jsonify
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -42,9 +42,15 @@ def transcribe():
     file = request.files['audio']
 
     if file:
-        audio_data = file.read()
-        audio_array, _ = librosa.load(io.BytesIO(audio_data))
-        result = pipe(audio_array, generate_kwargs={'language': 'german'})
+        # Save file
+        filename = str(int(time.time())) + file.filename
+        file.save(filename)
+
+        result = pipe(filename, generate_kwargs={'language': 'german'})
+
+        # Remove file
+        os.remove(filename)
+        
         return jsonify({'result': result['text']})
 
 if __name__ == '__main__':
