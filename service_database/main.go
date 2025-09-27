@@ -13,15 +13,15 @@ import (
 )
 
 type CreateCollectionRequest struct {
-	CollectionName string
+	CollectionName string `json:"collectionName"`
 }
 
 type DeleteCollectionRequest struct {
-	CollectionName string
+	CollectionName string `json:"collectionName"`
 }
 
 type GetCollectionsResponse struct {
-	CollectionNames []string
+	CollectionNames []string `json:"collectionNames"`
 }
 
 func main() {
