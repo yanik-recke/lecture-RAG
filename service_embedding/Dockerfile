@@ -6,8 +6,6 @@ COPY requirements.txt .
 COPY .env .
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENV ENVIRONMENT=DEV
-
 EXPOSE 8001
 
 COPY run.py .

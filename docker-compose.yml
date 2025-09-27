@@ -6,7 +6,7 @@ services:
       context: service_database/
       dockerfile: Dockerfile
     environment:
-      - DB_URL=http://standalone:19530
+      - DB_URL=http://standalone:19530/
     ports:
       - "8002:8002"
     depends_on:
@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - HF_TOKEN=$HF_TOKEN
-      - DB_URL=http://standalone:19530
+      - DB_URL=http://standalone:19530/
       - ENVIRONMENT=NOTDEV
     ulimits:
       stack: 67108864
