@@ -15,7 +15,7 @@ hf_token = os.environ.get("HF_TOKEN")
 if (hf_token == None):
     print("Please set a valid hugging face token.")
 
-db_url = os.environ.get("DB")
+db_url = os.environ.get("DB_URL")
 
 if (db_url == None):
     print("Please set a valid database connection URL.")
