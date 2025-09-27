@@ -1,0 +1,143 @@
+openapi: 3.0.3
+info:
+  title: Audio StudyAI Database Service API
+  description: REST API for managing Milvus vector database collections
+  version: 1.0.0
+  contact:
+    name: Audio StudyAI Team
+servers:
+  - url: http://localhost:8002
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the service
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+
+  /getCollections:
+    get:
+      summary: Get all collections
+      description: Retrieves a list of all collection names from the Milvus database
+      operationId: getCollections
+      responses:
+        '200':
+          description: Successfully retrieved collections
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCollectionsResponse'
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /createCollection:
+    post:
+      summary: Create a new collection
+      description: Creates a new collection in the Milvus database with predefined schema
+      operationId: createCollection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCollectionRequest'
+      responses:
+        '200':
+          description: Collection created successfully
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+        '400':
+          description: Bad request - invalid JSON in request body
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Internal server error - failed to create collection
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /removeCollection:
+    delete:
+      summary: Remove a collection
+      description: Deletes an existing collection from the Milvus database
+      operationId: removeCollection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteCollectionRequest'
+      responses:
+        '200':
+          description: Collection removed successfully
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+        '400':
+          description: Bad request - invalid JSON in request body
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Internal server error - failed to remove collection
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  schemas:
+    CreateCollectionRequest:
+      type: object
+      required:
+        - collectionName
+      properties:
+        collectionName:
+          type: string
+          description: Name of the collection to create
+          example: "my_audio_collection"
+
+    DeleteCollectionRequest:
+      type: object
+      required:
+        - collectionName
+      properties:
+        collectionName:
+          type: string
+          description: Name of the collection to delete
+          example: "my_audio_collection"
+
+    GetCollectionsResponse:
+      type: object
+      properties:
+        collectionNames:
+          type: array
+          items:
+            type: string
+          description: List of collection names in the database
+          example: ["collection1", "collection2", "my_audio_collection"]

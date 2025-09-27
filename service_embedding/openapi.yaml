@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: Embedding Service API
+  description: A Flask webserver that provides text embedding functionality using SentenceTransformer models and stores embeddings in a Milvus vector database.
+  version: 1.0.0
+  contact:
+    name: Audio StudyAI Team
+servers:
+  - url: http://localhost:8001
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Returns the health status of the embedding service
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                required:
+                  - status
+  /embed:
+    post:
+      summary: Generate Text Embeddings
+      description: Generates embeddings for the provided text using SentenceTransformer model and stores them in the Milvus vector database
+      operationId: embedText
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: The text to generate embeddings for
+                  example: "This is a sample text for embedding generation"
+              required:
+                - text
+      responses:
+        '200':
+          description: Embeddings successfully generated and stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  embeddings:
+                    type: array
+                    items:
+                      type: number
+                    description: The generated embedding vector as a list of numbers
+                    example: [0.1, -0.2, 0.5, 0.8, -0.1]
+                required:
+                  - embeddings
+        '400':
+          description: Bad request - missing text or database insertion failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message describing what went wrong
+                    example: "No text provided"
+                required:
+                  - error
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+      required:
+        - status
+    EmbedRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          description: The text to generate embeddings for
+          example: "This is a sample text for embedding generation"
+      required:
+        - text
+    EmbedResponse:
+      type: object
+      properties:
+        embeddings:
+          type: array
+          items:
+            type: number
+          description: The generated embedding vector as a list of numbers
+          example: [0.1, -0.2, 0.5, 0.8, -0.1]
+      required:
+        - embeddings
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message describing what went wrong
+          example: "No text provided"
+      required:
+        - error
