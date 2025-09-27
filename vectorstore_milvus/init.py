@@ -1,4 +1,5 @@
 from pymilvus import MilvusClient, DataType
+import os
 
 # ========================
 # Initialization script for the milvus vector store.
@@ -6,32 +7,37 @@ from pymilvus import MilvusClient, DataType
 #
 # Make sure to include the correct destination in the client creation.
 # ========================
+db_url = os.environ.get("DB_URL")
 
-client = MilvusClient("http://192.168.55.1:19530", timeout=10)
+if (db_url == None):
+    # Default Jetson Orin Nano adress, when using wired connection
+    db_url = "http://192.168.55.1:19530"
 
-schema = MilvusClient.create_schema();
-
-# Autogenerate ID
-schema.add_field(
-    field_name="id",
-    datatype=DataType.INT64,
-    is_primary=True,
-    auto_id=True,
-)
-
-# Vector field
-schema.add_field(
-    field_name="vector",
-    datatype=DataType.FLOAT_VECTOR,
-    dim=768,
-)
-
-client.create_collection(
-    collection_name="snippets",
-    schema=schema
-)
+client = MilvusClient(db_url, timeout=10)
 
 if (client.has_collection(collection_name="snippets")):
-    print("Yes")
+    print("Already exists, exiting.")
 else:
-    print("No")
+    print("Creating collection.")
+
+    schema = MilvusClient.create_schema();
+
+    # Autogenerate ID
+    schema.add_field(
+        field_name="id",
+        datatype=DataType.INT64,
+        is_primary=True,
+        auto_id=True,
+    )
+
+    # Vector field
+    schema.add_field(
+        field_name="vector",
+        datatype=DataType.FLOAT_VECTOR,
+        dim=768,
+    )
+
+    client.create_collection(
+        collection_name="snippets",
+        schema=schema
+    )
