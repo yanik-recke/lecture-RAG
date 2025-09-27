@@ -21,7 +21,7 @@ pipe = pipeline(
     tokenizer=processor.tokenizer,
     feature_extractor=processor.feature_extractor,
     device=device,
-    torch_dtype=torch_dtype,
+    dtype=torch_dtype,
     return_timestamps=True
 )
 
