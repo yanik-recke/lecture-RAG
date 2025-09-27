@@ -1,5 +1,17 @@
 services:
 
+  database-communication:
+    container_name: service-dbcommunication
+    build:
+      context: service_database/
+      dockerfile: Dockerfile
+    environment:
+      - DB=http://standalone:19530
+    ports:
+      - "8002:8002"
+    depends_on:
+      - standalone
+      
   embedding:
     container_name: service-embedding
     build:

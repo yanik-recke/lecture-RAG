@@ -6,3 +6,12 @@ volumes/
 
 *.log
 *.tmp
+
+# GO
+go.work
+go.work.sum
+
+
+# IDE
+.idea
+.vscode

@@ -37,6 +37,14 @@ else:
         dim=768,
     )
 
+    # Field with URL to lecture video
+    schema.add_field(
+        field_name="lecture_url",
+        datatype=DataType.VARCHAR,
+        max_length=512,
+        nullable=False
+    )
+
     client.create_collection(
         collection_name="snippets",
         schema=schema
