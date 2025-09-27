@@ -1,4 +1,5 @@
 import torch
+import io
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline, GenerationConfig
 from flask import Flask, request, jsonify
 
@@ -8,7 +9,7 @@ torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 model_id = "primeline/whisper-large-v3-turbo-german"
 
 model = AutoModelForSpeechSeq2Seq.from_pretrained(
-    model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
+    model_id, dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
 )
 
 model.to(device)
@@ -21,7 +22,7 @@ pipe = pipeline(
     tokenizer=processor.tokenizer,
     feature_extractor=processor.feature_extractor,
     device=device,
-    dtype=torch_dtype,
+    torch_dtype=torch_dtype,
     return_timestamps=True
 )
 
@@ -41,10 +42,9 @@ def transcribe():
 
     if file:
         audio_data = file.read()
-
-        result = pipe(audio_data, generate_kwargs={'language': 'german'})
-        print(result)
-
+        audio_stream = io.BytesIO(audio_data)
+        result = pipe(audio_stream, generate_kwargs={'language': 'german'})
+        return jsonify({'result': result['text']})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8003, debug=True)
