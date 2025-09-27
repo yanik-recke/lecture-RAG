@@ -10,7 +10,8 @@ services:
     ports:
       - "8002:8002"
     depends_on:
-      - standalone
+      standalone:
+        condition: service_healthy
 
   embedding:
     container_name: service-embedding
