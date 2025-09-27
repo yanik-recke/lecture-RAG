@@ -44,17 +44,32 @@ def health():
 @app.route('/embed', methods=['POST'])
 def embed_text():
     data = request.get_json()
+
     text = data.get('text', '')
 
     if not text:
         return jsonify({'error': 'No text provided'}), 400
+    
+    module = data.get('module', '')
+
+    if not module:
+        return jsonify({'error': 'No module provided'}), 400
+    
+    url = data.get('url', '')
+
+    if not url:
+        return jsonify({'error': 'No URL provided'}), 400
 
     embeddings = model.encode_query(text)
 
+    if not client.has_collection(module):
+        return jsonify({'error': 'No collection with that name exists. Create one first.'})
+
     res = client.insert(
-        collection_name="snippets",
+        collection_name=module,
         data={
-            'vector': embeddings.tolist()
+            'vector': embeddings.tolist(),
+            'lectureUrl': url
         }
     )
 

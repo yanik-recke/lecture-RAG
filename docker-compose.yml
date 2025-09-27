@@ -102,17 +102,17 @@ services:
       - "etcd"
       - "minio"
 
-  milvus-init:
-    image: python:3.9
-    container_name: milvus-init-script
-    volumes:
-      - ./vectorstore_milvus:/scripts
-    command: sh -c "pip install pymilvus && python /scripts/init.py"
-    environment:
-      - DB_URL=http://standalone:19530/
-    restart: "no"
-    depends_on:
-      - standalone
+  # milvus-init:
+  #   image: python:3.9
+  #   container_name: milvus-init-script
+  #   volumes:
+  #     - ./vectorstore_milvus:/scripts
+  #   command: sh -c "pip install pymilvus && python /scripts/init.py"
+  #   environment:
+  #     - DB_URL=http://standalone:19530/
+  #   restart: "no"
+  #   depends_on:
+  #     - standalone
 
 networks:
   default:

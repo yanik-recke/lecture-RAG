@@ -30,7 +30,7 @@ paths:
   /embed:
     post:
       summary: Generate Text Embeddings
-      description: Generates embeddings for the provided text using SentenceTransformer model and stores them in the Milvus vector database
+      description: Generates embeddings for the provided text using SentenceTransformer model and stores them in the specified Milvus collection with associated metadata
       operationId: embedText
       requestBody:
         required: true
@@ -43,8 +43,18 @@ paths:
                   type: string
                   description: The text to generate embeddings for
                   example: "This is a sample text for embedding generation"
+                module:
+                  type: string
+                  description: The name of the collection/module to store embeddings in
+                  example: "math101"
+                url:
+                  type: string
+                  description: The lecture URL associated with this text
+                  example: "https://example.com/lecture/1"
               required:
                 - text
+                - module
+                - url
       responses:
         '200':
           description: Embeddings successfully generated and stored
@@ -62,7 +72,7 @@ paths:
                 required:
                   - embeddings
         '400':
-          description: Bad request - missing text or database insertion failed
+          description: Bad request - missing required fields, collection doesn't exist, or database insertion failed
           content:
             application/json:
               schema:
@@ -91,8 +101,18 @@ components:
           type: string
           description: The text to generate embeddings for
           example: "This is a sample text for embedding generation"
+        module:
+          type: string
+          description: The name of the collection/module to store embeddings in
+          example: "math101"
+        url:
+          type: string
+          description: The lecture URL associated with this text
+          example: "https://example.com/lecture/1"
       required:
         - text
+        - module
+        - url
     EmbedResponse:
       type: object
       properties:
