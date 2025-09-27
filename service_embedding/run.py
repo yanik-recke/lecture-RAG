@@ -1,15 +1,24 @@
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
-from pymilvus import MilvusClient, DataType
+from pymilvus import MilvusClient
 import os
 import torch
 
-if (os.environ.get("ENVIRONMENT") == "DEV"):
+try: 
     load_dotenv(".env")
+except:
+    print("No .env file found.")
 
 hf_token = os.environ.get("HF_TOKEN")
+
+if (hf_token == None):
+    print("Please set a valid hugging face token.")
+
 db_url = os.environ.get("DB")
+
+if (db_url == None):
+    print("Please set a valid database connection URL.")
 
 # Needed due to an issue with torch 
 # https://stackoverflow.com/questions/72641886/attributeerror-module-torch-distributed-has-no-attribute-is-initialized-in
