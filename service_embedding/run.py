@@ -23,8 +23,6 @@ if (db_url == None):
     print("Please set a valid database connection URL.")
     raise Exception("Missing DB Url")
 
-print(db_url)
-
 # Needed due to an issue with torch 
 # https://stackoverflow.com/questions/72641886/attributeerror-module-torch-distributed-has-no-attribute-is-initialized-in
 setattr(torch.distributed, "is_initialized", lambda : False)
