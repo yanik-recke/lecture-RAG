@@ -26,6 +26,8 @@ services:
       - "8001:8001"
     depends_on:
       - standalone
+      - minio
+      - etcd
 
   etcd:
     container_name: milvus-etcd
@@ -43,9 +45,6 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    depends_on:
-      embedding:
-        condition: service_started
 
   minio:
     container_name: milvus-minio
@@ -64,9 +63,6 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    depends_on:
-      embedding:
-        condition: service_started
 
   standalone:
     container_name: milvus-standalone
@@ -104,7 +100,6 @@ services:
     restart: "no"
     depends_on:
       - standalone
-      
 
 networks:
   default:
