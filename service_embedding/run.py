@@ -14,11 +14,16 @@ hf_token = os.environ.get("HF_TOKEN")
 
 if (hf_token == None):
     print("Please set a valid hugging face token.")
+    raise Exception("Missing HF Token")
+
 
 db_url = os.environ.get("DB_URL")
 
 if (db_url == None):
     print("Please set a valid database connection URL.")
+    raise Exception("Missing DB Url")
+
+print(db_url)
 
 # Needed due to an issue with torch 
 # https://stackoverflow.com/questions/72641886/attributeerror-module-torch-distributed-has-no-attribute-is-initialized-in
