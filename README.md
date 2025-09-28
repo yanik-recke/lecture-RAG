@@ -34,4 +34,4 @@ I used [this](https://www.forecr.io/blogs/programming/how-to-increase-swap-space
 
 Since the Nano has an iGPU and shares the memory with the CPU the GPU usage can be monitored via `tegrastats`. Also helpful: `free -h` or rather `watch -n 0.5 free -m`.
 
-If any container quits silently this might help identifying the cause: `sudo dmesg | tail -20` (It will probably be an OOM error). With *dmesg* one can inspect the kernel messages.
+If any container quits silently inspecting the kernel messages might help identifying the cause: `sudo dmesg | tail -20` (It will probably be an OOM error). 
