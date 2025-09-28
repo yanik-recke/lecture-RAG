@@ -162,6 +162,16 @@ func createSchema() *entity.Schema {
 			WithMaxLength(512)).
 		WithField(entity.NewField().
 			WithName("vector").
-			WithDataType(entity.FieldTypeBFloat16Vector).
-			WithDim(768))
+			WithDataType(entity.FieldTypeFloatVector).
+			WithDim(768)).
+		WithField(entity.NewField().
+			WithName("text").
+			WithDataType(entity.FieldTypeVarChar).
+			WithMaxLength(1024)).
+		WithField(entity.NewField().
+			WithName("timestamp_start").
+			WithDataType(entity.FieldTypeFloat)).
+		WithField(entity.NewField().
+			WithName("timestamp_end").
+			WithDataType(entity.FieldTypeFloat))
 }

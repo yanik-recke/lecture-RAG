@@ -59,6 +59,16 @@ def embed_text():
 
     if not url:
         return jsonify({'error': 'No URL provided'}), 400
+        
+    timestamp_start = data.get('timestamp_start', '')
+
+    if not timestamp_start:
+        return jsonify({'error': 'No start timestamp provided'}), 400
+
+    timestamp_end = data.get('timestamp_end', '')
+
+    if not timestamp_end:
+        return jsonify({'error': 'No end timestamp provided'}), 400
 
     embeddings = model.encode_query(text)
 
@@ -67,9 +77,13 @@ def embed_text():
 
     res = client.insert(
         collection_name=module,
+
         data={
             'vector': embeddings.tolist(),
-            'lectureUrl': url
+            'lectureUrl': url,
+            'text': text,
+            'timestamp_start': timestamp_start,
+            'timestamp_end': timestamp_end
         }
     )
 
@@ -79,4 +93,4 @@ def embed_text():
     return jsonify({'embeddings': embeddings.tolist()})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8001, debug=True)
+    app.run(host='0.0.0.0', port=8001, processes=1)
