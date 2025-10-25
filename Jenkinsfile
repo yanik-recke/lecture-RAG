@@ -15,7 +15,7 @@ pipeline {
     environment {
         REGISTRY = 'ghcr.io'
         REGISTRY_NAMESPACE = 'yanik-recke'
-        REGISTRY_CREDENTIAL = 'docker-registry-credentials'
+        REGISTRY_CREDENTIAL = 'REGISTRY_CREDENTIAL'
     }
     
     stages {

@@ -79,32 +79,32 @@ def getServiceConfig() {
             name: 'service-database',
             dir: 'service_database',
             envVarPrefix: 'DB'
-        ],
-        [
-            name: 'service-embedding',
-            dir: 'service_embedding',
-            envVarPrefix: 'EMBEDDING'
-        ],
-        [
-            name: 'service-frontend',
-            dir: 'service_frontend',
-            envVarPrefix: 'FRONTEND'
-        ],
-        [
-            name: 'service-retrieval',
-            dir: 'service_retrieval',
-            envVarPrefix: 'RETRIEVAL'
-        ],
-        [
-            name: 'service-speechtotext',
-            dir: 'service_speechtotext',
-            envVarPrefix: 'SPEECHTOTEXT'
-        ],
-        [
-            name: 'vectorstore-milvus',
-            dir: 'vectorstore_milvus',
-            envVarPrefix: 'MILVUS'
         ]
+        // [
+        //     name: 'service-embedding',
+        //     dir: 'service_embedding',
+        //     envVarPrefix: 'EMBEDDING'
+        // ],
+        // [
+        //     name: 'service-frontend',
+        //     dir: 'service_frontend',
+        //     envVarPrefix: 'FRONTEND'
+        // ],
+        // [
+        //     name: 'service-retrieval',
+        //     dir: 'service_retrieval',
+        //     envVarPrefix: 'RETRIEVAL'
+        // ],
+        // [
+        //     name: 'service-speechtotext',
+        //     dir: 'service_speechtotext',
+        //     envVarPrefix: 'SPEECHTOTEXT'
+        // ],
+        // [
+        //     name: 'vectorstore-milvus',
+        //     dir: 'vectorstore_milvus',
+        //     envVarPrefix: 'MILVUS'
+        // ]
     ]
 }
 
