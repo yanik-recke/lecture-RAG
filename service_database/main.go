@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/milvus-io/milvus/client/v2/entity"
 	"github.com/milvus-io/milvus/client/v2/milvusclient"
-	"log"
-	"net/http"
-	"os"
 )
 
 type CreateCollectionRequest struct {
@@ -28,7 +29,7 @@ func main() {
 
 	dbUrl, exists := os.LookupEnv("DB_URL")
 
-	// If environment variable is not set, set to default value
+	// If environment variable is not set, set to default value http://192.168.55.1:19530
 	if !exists {
 		log.Println("DB_URL environment variable not set")
 		dbUrl = "http://192.168.55.1:19530"

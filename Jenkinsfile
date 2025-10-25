@@ -1,3 +1,7 @@
+import groovy.transform.Field
+
+@Field def buildFunctions
+
 pipeline {
     agent any
     
