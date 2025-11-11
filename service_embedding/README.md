@@ -1,5 +1,14 @@
 ## Development
 
+Generate the messages and stubs with:
+```shell
+ python -m grpc_tools.protoc \
+  -Iproto \
+  --python_out=service_embedding/target \
+  --grpc_python_out=service_embedding/target \
+  proto/lecture_store.proto    
+```
+
 Flask server running on port `8001`.
 
 Building docker image: `docker build -t "embeddinggemma".\n

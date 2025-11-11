@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package embeddingservice;
+
+import "lecture_store.proto";
+
+service EmbeddingService {
+  rpc CreateEmbedding(NewEmbeddingReq) returns (NewEmbeddingRes);
+}
+
+message RawText {
+  string raw_content = 1;
+}
+
+message NewEmbeddingReq {
+  RawText to_embed = 1;
+}
+
+message NewEmbeddingRes {
+  oneof result {
+    lecturestore.VectorEmbedding vec = 1;
+    string error_msg = 2;
+  }
+}
