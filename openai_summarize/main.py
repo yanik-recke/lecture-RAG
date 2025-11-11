@@ -14,7 +14,7 @@ def main():
     load_dotenv(".env")
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    with open("files/input_bk1", "r", encoding="utf-8") as f:
+    with open("files/input_bk1b", "r", encoding="utf-8") as f:
         input_text = f.read()
 
     result = client.responses.create(
