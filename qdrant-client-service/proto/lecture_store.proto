@@ -1,20 +1,15 @@
 syntax = "proto3";
 
+package lecturestore;
+
 service LectureStore {
   rpc AddTranscriptEmbedding(AddTranscriptEmbeddingReq) returns (AddTranscriptEmbeddingRes);
   rpc AddSummaryEmbedding(AddSummaryEmbeddingReq) returns (AddSummaryEmbeddingRes);
 }
 
-enum Module {
-  BUK = 0;
-  SKI = 1;
-  DS = 2;
-  FSUV = 3;
-}
-
 message TranscriptEmbedding {
   // Bildet die Collection ab
-  Module lecture = 1;
+  string module = 1;
   // Timestamp des Segments
   Timestamp timestamp = 2;
   // Text
@@ -26,7 +21,7 @@ message TranscriptEmbedding {
 
 message SummaryEmbedding {
   // Bildet die Collection ab
-  Module lecture = 1;
+  string module = 1;
   // Text
   string raw_content = 2;
   // Name der Vorlesung (z.B. BK1a)
