@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import time
 
+PART_LENGTH_SECONDS = 2250
 
 # This script uses the OpenAI API to transcribe lectures.
 # You have to modify the strings in the path list
@@ -41,9 +42,8 @@ def main():
 
         transcription_dict = transcription.model_dump()
 
-        # Adjust timestamps for split files (each part is 2250 seconds)
         if idx > 0:
-            time_offset = idx * 2250
+            time_offset = idx * PART_LENGTH_SECONDS
 
             # Adjust segment timestamps
             if transcription_dict.get("segments"):
