@@ -1,0 +1,1 @@
+# Using OpenAI's API to Create Summaries for the Transcribed Lectures
