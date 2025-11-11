@@ -1,13 +1,16 @@
 FROM nvcr.io/nvidia/pytorch:25.08-py3-igpu
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 WORKDIR /app
 
-COPY requirements.txt .
+COPY pyproject.toml uv.lock ./
+
+RUN uv sync --frozen --no-dev
+
 COPY .env .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY run.py .
 
 EXPOSE 8001
 
-COPY run.py .
-
-ENTRYPOINT ["python", "run.py"]
+ENTRYPOINT ["uv", "run", "run.py"]

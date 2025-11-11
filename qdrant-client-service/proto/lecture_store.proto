@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+service LectureStore {
+  rpc AddTranscriptEmbedding(AddTranscriptEmbeddingReq) returns (AddTranscriptEmbeddingRes);
+  rpc AddSummaryEmbedding(AddSummaryEmbeddingReq) returns (AddSummaryEmbeddingRes);
+}
+
+enum Module {
+  BUK = 0;
+  SKI = 1;
+  DS = 2;
+  FSUV = 3;
+}
+
+message TranscriptEmbedding {
+  // Bildet die Collection ab
+  Module lecture = 1;
+  // Timestamp des Segments
+  Timestamp timestamp = 2;
+  // Text
+  string raw_content = 3;
+  // Name der Vorlesung (z.B. BK1a)
+  string lecture_name = 4;
+  VectorEmbedding embedding = 5;
+}
+
+message SummaryEmbedding {
+  // Bildet die Collection ab
+  Module lecture = 1;
+  // Text
+  string raw_content = 2;
+  // Name der Vorlesung (z.B. BK1a)
+  string lecture_name = 3;
+  VectorEmbedding embedding = 4;
+}
+
+message Timestamp {
+  float timestamp_start = 1;
+  float timestamp_end = 2;
+}
+
+message VectorEmbedding {
+  repeated float vector_data = 1 [packed = true];
+}
+
+message AddTranscriptEmbeddingReq {
+  TranscriptEmbedding transcript_embedding = 1;
+}
+
+message AddTranscriptEmbeddingSuccess {
+  string qdrant_point_id = 1;
+}
+
+message AddTranscriptEmbeddingRes {
+  oneof result {
+    AddTranscriptEmbeddingSuccess success_payload = 1;
+    string error_message = 2;
+  }
+}
+
+message AddSummaryEmbeddingReq {
+  SummaryEmbedding summary_embedding = 1;
+}
+
+message AddSummaryEmbeddingSuccess {
+  string qdrant_point_id = 1;
+}
+
+message AddSummaryEmbeddingRes {
+  oneof result {
+    AddSummaryEmbeddingSuccess success_payload = 1;
+    string error_message = 2;
+  }
+}
