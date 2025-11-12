@@ -75,11 +75,11 @@ def detectChanges(List<String> services, String changesOutput) {
 
 def getServiceConfig() {
     return [
-        [
-            name: 'service-database',
-            dir: 'service_database',
-            envVarPrefix: 'DB'
-        ]
+        // [
+        //     name: 'service-database',
+        //     dir: 'service_database',
+        //     envVarPrefix: 'DB'
+        // ]
         // [
         //     name: 'service-embedding',
         //     dir: 'service_embedding',

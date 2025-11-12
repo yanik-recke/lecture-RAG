@@ -19,8 +19,8 @@ def main():
     load_dotenv(".env")
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     paths = [
-        "/Users/yanik/_repos/lecture-RAG/openai_speechtotext/files/bk1a_part1.mp3",
-        "/Users/yanik/_repos/lecture-RAG/openai_speechtotext/files/bk1a_part2.mp3"
+        "/Users/yanik/_repos/lecture-RAG/openai_speechtotext/files/bk2b_part1.mp3",
+        "/Users/yanik/_repos/lecture-RAG/openai_speechtotext/files/bk2b_part2.mp3"
     ]
 
     results = []
@@ -62,7 +62,7 @@ def main():
             "transcription": transcription_dict
         })
 
-    with open("transcription-BK1a.json", "w", encoding="utf-8") as f:
+    with open("transcription-BK2b.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
 
