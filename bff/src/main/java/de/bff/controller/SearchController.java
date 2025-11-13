@@ -1,5 +1,6 @@
 package de.bff.controller;
 
+import de.bff.model.SearchRequest;
 import de.bff.service.LectureService;
 import lectureservice.LectureServiceOuterClass;
 import org.slf4j.Logger;
@@ -24,47 +25,22 @@ public class SearchController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> search(@RequestBody SearchRequest searchRequest) {
-        log.info("Received search request with prompt: {}", searchRequest.getPrompt());
+    public ResponseEntity<String> search(@RequestBody SearchRequest searchRequest) {
+        log.info("Received search request with prompt: {}", searchRequest.prompt());
 
         try {
-            LectureServiceOuterClass.SearchRes response = lectureService.search(searchRequest.getPrompt());
-
-            Map<String, String> result = new HashMap<>();
+            LectureServiceOuterClass.SearchRes response = lectureService.search(searchRequest.prompt());
 
             if (response.hasErrorMessage()) {
                 log.error("Search failed: {}", response.getErrorMessage());
-                result.put("error", response.getErrorMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response.getErrorMessage());
+            } else {
+                return ResponseEntity.ok(response.getResponse());
             }
-
-            result.put("message", "Search completed successfully");
-            return ResponseEntity.ok(result);
-
         } catch (RuntimeException e) {
             log.error("Search error: {}", e.getMessage(), e);
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Search failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while trying to process the request");
         }
     }
 
-    public static class SearchRequest {
-        private String prompt;
-
-        public SearchRequest() {
-        }
-
-        public SearchRequest(String prompt) {
-            this.prompt = prompt;
-        }
-
-        public String getPrompt() {
-            return prompt;
-        }
-
-        public void setPrompt(String prompt) {
-            this.prompt = prompt;
-        }
-    }
 }

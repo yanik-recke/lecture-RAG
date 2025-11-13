@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/transcription")
@@ -27,7 +25,7 @@ public class TranscriptionController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, String>> transcribe(
+    public ResponseEntity<String> transcribe(
             @RequestParam("file") MultipartFile file,
             @RequestParam("lectureName") String lectureName,
             @RequestParam("module") String module) {
@@ -41,27 +39,19 @@ public class TranscriptionController {
             LectureServiceOuterClass.TranscribeRes response = lectureService.transcribe(
                     audioData, fileName, lectureName, module);
 
-            Map<String, String> result = new HashMap<>();
-
             if (response.hasErrorMessage()) {
                 log.error("Transcription failed: {}", response.getErrorMessage());
-                result.put("error", response.getErrorMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while trying to process the request");
             }
 
-            result.put("message", "Transcription completed successfully");
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok("File added to transcription queue");
 
         } catch (IOException e) {
             log.error("Failed to read file: {}", e.getMessage(), e);
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to read file: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid file");
         } catch (RuntimeException e) {
             log.error("Transcription error: {}", e.getMessage(), e);
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Transcription failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while trying to process the request");
         }
     }
 }
