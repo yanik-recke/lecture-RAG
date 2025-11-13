@@ -1,0 +1,79 @@
+use crate::lecturestore::lecture_store_client::LectureStoreClient;
+use crate::lecturestore::{
+    AddTranscriptEmbeddingReq, AddTranscriptEmbeddingRes, SimilaritySearchReq, SimilaritySearchRes,
+    Timestamp, TranscriptEmbedding, VectorEmbedding,
+};
+use anyhow::{Context, Result};
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use tonic::transport::{Channel, Endpoint};
+use tonic::{Request, Status};
+
+pub struct LectureStoreService {
+    client: Arc<Mutex<LectureStoreClient<Channel>>>,
+}
+
+impl LectureStoreService {
+    pub async fn new(host: String, port: u32) -> Result<Self> {
+        let endpoint =
+            Endpoint::new(format!("{}:{}", host, port)).context("Could not create endpoint")?;
+        let channel = endpoint
+            .connect()
+            .await
+            .context("Failed to connect to server")?;
+
+        Ok(LectureStoreService {
+            client: Arc::new(Mutex::new(LectureStoreClient::new(channel))),
+        })
+    }
+
+    pub async fn add_transcript_embedding(
+        &self,
+        module: String,
+        timestamp: Timestamp,
+        raw_content: String,
+        lecture_name: String,
+        embedding: VectorEmbedding,
+    ) -> Result<AddTranscriptEmbeddingRes> {
+        let trans_embedding = Request::new(AddTranscriptEmbeddingReq {
+            transcript_embedding: Some(TranscriptEmbedding {
+                module,
+                timestamp: Some(timestamp),
+                raw_content,
+                lecture_name,
+                embedding: Some(embedding),
+            }),
+        });
+
+        Ok(self
+            .client
+            .lock()
+            .await
+            .add_transcript_embedding(trans_embedding)
+            .await
+            .context("Could not add transcript embedding")?
+            .into_inner())
+    }
+
+    pub async fn add_summary_embedding() -> Result<(), Status> {
+        Err(Status::unimplemented("Not implemented"))
+    }
+
+    pub async fn perform_similarity_search(
+        &self,
+        embedding: VectorEmbedding,
+    ) -> Result<SimilaritySearchRes> {
+        let req = Request::new(SimilaritySearchReq {
+            embedding: Some(embedding),
+        });
+
+        Ok(self
+            .client
+            .lock()
+            .await
+            .similarity_search(req)
+            .await
+            .context("Could not perform similarity search")?
+            .into_inner())
+    }
+}
