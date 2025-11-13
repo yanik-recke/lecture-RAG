@@ -1,10 +1,11 @@
 use crate::lecturestore::lecture_store_server::{LectureStore, LectureStoreServer};
 use crate::lecturestore::{
     AddSummaryEmbeddingReq, AddSummaryEmbeddingRes, AddTranscriptEmbeddingReq,
-    AddTranscriptEmbeddingRes, AddTranscriptEmbeddingSuccess, SummaryEmbedding, Timestamp,
+    AddTranscriptEmbeddingRes, AddTranscriptEmbeddingSuccess, SummaryEmbedding,
     TranscriptEmbedding, add_transcript_embedding_res,
 };
 use anyhow::{Context, Result};
+use log::{debug, info};
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{
     CreateCollectionBuilder, Distance, PointId, PointStruct, UpsertPointsBuilder, Value,
@@ -22,11 +23,24 @@ pub mod lecturestore {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let server = LectureStoreServerImpl::new(
-        "127.0.0.1".to_string(),
-        8080,
-        "http://127.0.0.1:8081".to_string(),
+    env_logger::init();
+
+    let host = std::env::var("LECTURE_STORE_HOST")
+        .context("LECTURE_STORE_HOST environment variable must be set")?;
+
+    let port = std::env::var("LECTURE_STORE_PORT")
+        .expect("LECTURE_STORE_PORT environment variable must be set")
+        .parse::<u32>()
+        .context("LECTURE_STORE_PORT must be a valid number")?;
+
+    let qdrant_url =
+        std::env::var("QDRANT_URL").context("QDRANT_URL environment variable must be set")?;
+
+    info!(
+        "Configuring server with host: {}, port: {} and qdrant endpoint: {}",
+        host, port, qdrant_url
     );
+    let server = LectureStoreServerImpl::new(host, port, qdrant_url);
 
     server.start().await?;
     Ok(())
@@ -53,8 +67,9 @@ impl LectureStoreServerImpl {
             .context("Could not create socket address")?;
 
         let client = Qdrant::from_url(&*self.qdrant_url).build()?;
-        let service = LectureStoreService { client };
+        let service = LectureStoreService::new(client);
 
+        debug!("Starting server on {}:{}", self.host, self.port);
         Server::builder()
             .add_service(LectureStoreServer::new(service))
             .serve(addr)
@@ -68,6 +83,12 @@ pub struct LectureStoreService {
     client: Qdrant,
 }
 
+impl LectureStoreService {
+    pub fn new(client: Qdrant) -> Self {
+        LectureStoreService { client }
+    }
+}
+
 #[tonic::async_trait]
 impl LectureStore for LectureStoreService {
     async fn add_transcript_embedding(
@@ -79,6 +100,14 @@ impl LectureStore for LectureStoreService {
             .transcript_embedding
             .ok_or_else(|| Status::invalid_argument("Field transcript_embedding is missing"))?;
 
+        debug!(
+            "Received AddTranscriptEmbeddingReq with module: {}, raw_content: {}, \
+        lecture_name: {}",
+            transcript_embedding.module,
+            transcript_embedding.raw_content,
+            transcript_embedding.lecture_name
+        );
+
         let collection_name = format!("{}_embedding", transcript_embedding.module);
 
         check_and_create_collection(&self.client, &*collection_name).await?;
@@ -87,6 +116,8 @@ impl LectureStore for LectureStoreService {
         let point_id = PointId {
             point_id_options: Some(point_id::PointIdOptions::Uuid(new_uuid.to_string().clone())),
         };
+
+        debug!("Generated new_uuid: {}", new_uuid);
 
         let payload = build_transcript_payload(&transcript_embedding).map_err(|e| {
             Status::internal(format!("There was an error building the payload: {}", e))
@@ -111,6 +142,8 @@ impl LectureStore for LectureStoreService {
             )
             .await
             .map_err(|e| Status::internal(format!("Failed to upsert points: {}", e)))?;
+
+        debug!("Successfully upserted embeddings with payload");
 
         Ok(Response::new(AddTranscriptEmbeddingRes {
             result: Some(add_transcript_embedding_res::Result::SuccessPayload(
@@ -138,7 +171,7 @@ impl LectureStore for LectureStoreService {
 
         // Upsert embedding
         println!("{}", summary_embedding.lecture_name);
-        todo!()
+        Err(Status::cancelled("Not implemented yet"))
     }
 }
 
@@ -157,15 +190,17 @@ async fn check_and_create_collection(client: &Qdrant, collection_name: &str) -> 
                 )
                 .await
                 .map_err(|e| Status::internal(format!("Failed to create collection: {}", e)))?;
+            debug!("Collection {} created", collection_name);
             Ok(())
         }
-        Err(e) => {
-            return Err(Status::internal(format!(
-                "Failed to check if collection exists: {}",
-                e
-            )));
-        }
-        _ => Ok(()), // Do nothing as collection already exists
+        Err(e) => Err(Status::internal(format!(
+            "Failed to check if collection exists: {}",
+            e
+        ))),
+        _ => {
+            debug!("Collection {} exists", collection_name);
+            Ok(())
+        } // Do nothing as collection already exists
     }
 }
 
@@ -197,6 +232,14 @@ fn build_transcript_payload(
         Value::from(&*transcript_embedding.lecture_name),
     );
 
+    debug!(
+        "Built transcript payload with timestamp_start: {}, timestamp_end: {}, raw_content: {}, lecture_name: {}",
+        timestamp.timestamp_start,
+        timestamp.timestamp_end,
+        transcript_embedding.raw_content,
+        transcript_embedding.lecture_name
+    );
+
     Ok(payload)
 }
 
@@ -211,6 +254,11 @@ fn build_summary_payload(summary_embedding: &SummaryEmbedding) -> HashMap<String
     payload.insert(
         "lecture_name".to_string(),
         Value::from(&*summary_embedding.lecture_name),
+    );
+
+    debug!(
+        "Built summary payload with raw_content: {}, lecture_name:{}",
+        summary_embedding.raw_content, summary_embedding.lecture_name
     );
 
     payload
