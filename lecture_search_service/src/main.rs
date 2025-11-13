@@ -11,6 +11,7 @@ pub mod lecturestore {
     tonic::include_proto!("lecturestore");
 }
 
+// #[tonic::async_trait]
 fn main() {
     println!("Hello, world!");
 }
@@ -18,5 +19,3 @@ fn main() {
 struct LectureSearchService {
     client: LectureStoreClient<Channel>,
 }
-
-// #[tonic::async_trait]
