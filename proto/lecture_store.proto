@@ -5,6 +5,7 @@ package lecturestore;
 service LectureStore {
   rpc AddTranscriptEmbedding(AddTranscriptEmbeddingReq) returns (AddTranscriptEmbeddingRes);
   rpc AddSummaryEmbedding(AddSummaryEmbeddingReq) returns (AddSummaryEmbeddingRes);
+  rpc SimilaritySearch(SimilaritySearchReq) returns (SimilaritySearchRes);
 }
 
 message TranscriptEmbedding {
@@ -66,4 +67,12 @@ message AddSummaryEmbeddingRes {
     AddSummaryEmbeddingSuccess success_payload = 1;
     string error_message = 2;
   }
+}
+
+message SimilaritySearchReq {
+ VectorEmbedding embedding = 1;
+}
+
+message SimilaritySearchRes {
+  repeated TranscriptEmbedding result_docs = 1;
 }

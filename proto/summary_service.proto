@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package summaryservice;
+
+service SummaryService {
+  rpc Summarize(SummarizeReq) returns (SummarizeRes);
+}
+
+message SummarizeReq {
+  string to_summarize = 1;
+}
+
+message SummarizeRes {
+  oneof response_payload {
+    string error_msg = 1;
+    string summary = 2;
+  }
+}

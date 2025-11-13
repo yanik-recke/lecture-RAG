@@ -1,0 +1,10 @@
+/Users/yanik/_repos/lecture-RAG/lecture_search_service/target/debug/deps/tonic_build-cf4fcaebbc1c8621.d: /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/lib.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/manual.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/client.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/server.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/code_gen.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/../README.md
+
+/Users/yanik/_repos/lecture-RAG/lecture_search_service/target/debug/deps/libtonic_build-cf4fcaebbc1c8621.rmeta: /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/lib.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/manual.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/client.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/server.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/code_gen.rs /Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/../README.md
+
+/Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/lib.rs:
+/Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/manual.rs:
+/Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/client.rs:
+/Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/server.rs:
+/Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/code_gen.rs:
+/Users/yanik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tonic-build-0.14.2/src/../README.md:
