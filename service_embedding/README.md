@@ -16,6 +16,10 @@ Generate the messages and stubs with (you might have to create the target/ direc
 
 The gRPC server listens on port 50052.
 
+### Build and Push Docker Image
+
+`docker buildx build --platform linux/arm64 -t ghcr.io/yanik-recke/lecture-rag/embedding-service:VERSION --push .`
+
 ## Torch
 
 *torch* is not listed as a dependency in [pyproject.toml](pyproject.toml) as a specific

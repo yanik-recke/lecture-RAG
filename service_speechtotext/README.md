@@ -20,6 +20,9 @@ To run on Jetson Orin Nano use `docker run --gpus all --ipc=host -v ~/.cache/hug
 ### Server
 The gRPC server listens on port 50051.
 
+### Build and Push Docker Image
+`docker buildx build --platform linux/arm64 -t ghcr.io/yanik-recke/lecture-rag/whisper-service:VERSION --push .`
+
 ### Testing
 To get a quick test gradio server running check out [test](test).  
 ```shell
