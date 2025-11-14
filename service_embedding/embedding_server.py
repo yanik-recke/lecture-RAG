@@ -49,7 +49,7 @@ class EmbeddingServiceServicer(embedding_grpc.EmbeddingServiceServicer):
 
 def serve():
     """Start the gRPC server."""
-    port = os.environ.get("WHISPER_PORT", "50051")
+    port = os.environ.get("WHISPER_PORT", "50052")
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     embedding_grpc.add_EmbeddingServiceServicer_to_server(EmbeddingServiceServicer(), server)
