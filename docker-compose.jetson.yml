@@ -1,0 +1,40 @@
+services:
+  embedding:
+    container_name: service-embedding
+    image: ghcr.io/yanik-recke/lecture-rag/embedding-service:snapshot-1.0.0
+    environment:
+      - HF_TOKEN=$HF_TOKEN
+    ulimits:
+      stack: 67108864
+      memlock: -1
+    volumes:
+      - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "50052:50052"
+
+  whisper:
+    container_name: service-whisper
+    image: ghcr.io/yanik-recke/lecture-rag/whisper-service:snapshot-2.0.0
+    ulimits:
+      stack: 67108864
+      memlock: -1
+    volumes:
+      - ~/.cache/huggingface/hub:/root/.cache/huggingface/hub
+    ipc: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "50051:50051"
