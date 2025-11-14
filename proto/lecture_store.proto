@@ -70,7 +70,8 @@ message AddSummaryEmbeddingRes {
 }
 
 message SimilaritySearchReq {
- VectorEmbedding embedding = 1;
+  string module = 1;
+  VectorEmbedding embedding = 2;
 }
 
 message SimilaritySearchRes {

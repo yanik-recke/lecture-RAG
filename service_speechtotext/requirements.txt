@@ -1,4 +1,4 @@
 flask
 transformers
 python-dotenv
-grpcio-tools
+grpcio-tools>=1.76.0
