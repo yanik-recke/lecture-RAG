@@ -5,7 +5,6 @@ import sys
 import requests
 from dotenv import load_dotenv
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
-from flask import Flask, request, jsonify
 
 try: 
     load_dotenv(".env")

@@ -2,13 +2,17 @@ FROM nvcr.io/nvidia/pytorch:25.08-py3-igpu
 
 RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml uv.lock ./
 
-COPY run.py .
+RUN uv sync --frozen --no-dev
 
-EXPOSE 8003
+COPY target ./target
+COPY whisper_server.py .
 
-ENTRYPOINT [ "python", "run.py" ]
+EXPOSE 50051
+
+ENTRYPOINT ["uv", "run", "whisper_server.py"]
