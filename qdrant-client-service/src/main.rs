@@ -1,15 +1,16 @@
 use crate::lecturestore::lecture_store_server::{LectureStore, LectureStoreServer};
 use crate::lecturestore::{
     AddSummaryEmbeddingReq, AddSummaryEmbeddingRes, AddTranscriptEmbeddingReq,
-    AddTranscriptEmbeddingRes, AddTranscriptEmbeddingSuccess, SummaryEmbedding,
-    TranscriptEmbedding, add_transcript_embedding_res,
+    AddTranscriptEmbeddingRes, AddTranscriptEmbeddingSuccess, SimilaritySearchReq,
+    SimilaritySearchRes, SummaryEmbedding, Timestamp, TranscriptEmbedding,
+    add_transcript_embedding_res,
 };
 use anyhow::{Context, Result};
-use log::{debug, info};
+use log::{debug, error, info};
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{
-    CreateCollectionBuilder, Distance, PointId, PointStruct, UpsertPointsBuilder, Value,
-    VectorParamsBuilder, point_id,
+    CreateCollectionBuilder, Distance, PointId, PointStruct, Query, QueryPointsBuilder,
+    UpsertPointsBuilder, Value, VectorParamsBuilder, point_id,
 };
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -24,7 +25,6 @@ pub mod lecturestore {
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::init();
-
     let host = std::env::var("LECTURE_STORE_HOST")
         .context("LECTURE_STORE_HOST environment variable must be set")?;
 
@@ -67,9 +67,11 @@ impl LectureStoreServerImpl {
             .context("Could not create socket address")?;
 
         let client = Qdrant::from_url(&*self.qdrant_url).build()?;
+
         let service = LectureStoreService::new(client);
 
         debug!("Starting server on {}:{}", self.host, self.port);
+
         Server::builder()
             .add_service(LectureStoreServer::new(service))
             .serve(addr)
@@ -120,6 +122,7 @@ impl LectureStore for LectureStoreService {
         debug!("Generated new_uuid: {}", new_uuid);
 
         let payload = build_transcript_payload(&transcript_embedding).map_err(|e| {
+            error!("Error building transcript payload: {}", e);
             Status::internal(format!("There was an error building the payload: {}", e))
         })?;
 
@@ -141,7 +144,10 @@ impl LectureStore for LectureStoreService {
                 .wait(true),
             )
             .await
-            .map_err(|e| Status::internal(format!("Failed to upsert points: {}", e)))?;
+            .map_err(|e| {
+                error!("Failed to upsert points: {}", e);
+                Status::internal(format!("Failed to upsert points: {}", e))
+            })?;
 
         debug!("Successfully upserted embeddings with payload");
 
@@ -167,11 +173,58 @@ impl LectureStore for LectureStoreService {
 
         check_and_create_collection(&self.client, &*collection_name).await?;
 
-        let payload = build_summary_payload(&summary_embedding);
+        // let payload = build_summary_payload(&summary_embedding);
 
         // Upsert embedding
         println!("{}", summary_embedding.lecture_name);
-        Err(Status::cancelled("Not implemented yet"))
+        Err(Status::unimplemented("Not implemented yet"))
+    }
+
+    async fn similarity_search(
+        &self,
+        request: Request<SimilaritySearchReq>,
+    ) -> std::result::Result<Response<SimilaritySearchRes>, tonic::Status> {
+        let req = request.into_inner();
+        let vector = req.embedding.ok_or_else(|| {
+            Status::invalid_argument("Field embedding is missing in request for similarity search")
+        })?;
+
+        let res = self
+            .client
+            .query(
+                QueryPointsBuilder::new(req.module.clone())
+                    .query(Query::new_nearest(vector.vector_data))
+                    .with_payload(true)
+                    .with_vectors(true)
+                    .limit(5),
+            )
+            .await
+            .map_err(|e| {
+                error!("Similarity search failed: {}", e);
+                Status::internal(format!("Similarity search failed: {}", e))
+            })?;
+
+        let mut result_docs: Vec<TranscriptEmbedding> = Vec::new();
+
+        for point in res.result {
+            let timestamp_start = extract_f32_from_payload(&point.payload, "timestamp_start")?;
+            let timestamp_end = extract_f32_from_payload(&point.payload, "timestamp_end")?;
+            let raw_content = extract_string_from_payload(&point.payload, "raw_content")?;
+            let lecture_name = extract_string_from_payload(&point.payload, "lecture_name")?;
+
+            result_docs.push(TranscriptEmbedding {
+                module: req.module.clone(),
+                timestamp: Some(Timestamp {
+                    timestamp_start,
+                    timestamp_end,
+                }),
+                raw_content,
+                lecture_name,
+                embedding: None,
+            });
+        }
+
+        Ok(Response::new(SimilaritySearchRes { result_docs }))
     }
 }
 
@@ -189,14 +242,20 @@ async fn check_and_create_collection(client: &Qdrant, collection_name: &str) -> 
                         .vectors_config(VectorParamsBuilder::new(768, Distance::Cosine)),
                 )
                 .await
-                .map_err(|e| Status::internal(format!("Failed to create collection: {}", e)))?;
+                .map_err(|e| {
+                    error!("Failed to create collection '{}': {}", collection_name, e);
+                    Status::internal(format!("Failed to create collection: {}", e))
+                })?;
             debug!("Collection {} created", collection_name);
             Ok(())
         }
-        Err(e) => Err(Status::internal(format!(
-            "Failed to check if collection exists: {}",
-            e
-        ))),
+        Err(e) => {
+            error!("Failed to check if collection '{}' exists: {}", collection_name, e);
+            Err(Status::internal(format!(
+                "Failed to check if collection exists: {}",
+                e
+            )))
+        }
         _ => {
             debug!("Collection {} exists", collection_name);
             Ok(())
@@ -262,4 +321,42 @@ fn build_summary_payload(summary_embedding: &SummaryEmbedding) -> HashMap<String
     );
 
     payload
+}
+
+fn extract_f32_from_payload(
+    payload: &HashMap<String, Value>,
+    field_name: &str,
+) -> Result<f32, Status> {
+    debug!("{:?}", payload);
+    payload
+        .get(field_name)
+        .and_then(|v| match v.kind.as_ref()? {
+            qdrant_client::qdrant::value::Kind::DoubleValue(d) => Some(*d as f32),
+            qdrant_client::qdrant::value::Kind::IntegerValue(i) => Some(*i as f32),
+            _ => None,
+        })
+        .ok_or_else(|| {
+            Status::internal(format!(
+                "Point was missing field {} or it did not include a numeric value",
+                field_name
+            ))
+        })
+}
+
+fn extract_string_from_payload(
+    payload: &HashMap<String, Value>,
+    field_name: &str,
+) -> Result<String, Status> {
+    payload
+        .get(field_name)
+        .and_then(|v| match v.kind.as_ref()? {
+            qdrant_client::qdrant::value::Kind::StringValue(s) => Some(s.clone()),
+            _ => None,
+        })
+        .ok_or_else(|| {
+            Status::internal(format!(
+                "Point was missing field {} or it was not a string",
+                field_name
+            ))
+        })
 }
