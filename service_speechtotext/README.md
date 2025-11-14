@@ -17,6 +17,9 @@ python3 -m grpc_tools.protoc \
 
 To run on Jetson Orin Nano use `docker run --gpus all --ipc=host -v ~/.cache/huggingface/hub:/root/.cache/huggingface/hub --ulimit memlock=-1 --ulimit stack=67108864 -it --rm -p 7860:7860 s2t`
 
+### Server
+The gRPC server listens on port 50051.
+
 ### Testing
 To get a quick test gradio server running check out [test](test).  
 ```shell
