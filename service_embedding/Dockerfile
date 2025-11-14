@@ -8,9 +8,9 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv sync --frozen --no-dev
 
-COPY .env .
-COPY run.py .
+COPY target ./target
+COPY embedding_server.py .
 
 EXPOSE 8001
 
-ENTRYPOINT ["uv", "run", "run.py"]
+ENTRYPOINT ["uv", "run", "embedding_server.py"]
