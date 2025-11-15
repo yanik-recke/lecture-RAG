@@ -22,7 +22,7 @@ services:
 
   whisper:
     container_name: service-whisper
-    image: ghcr.io/yanik-recke/lecture-rag/whisper-service:snapshot-2.1.1
+    image: ghcr.io/yanik-recke/lecture-rag/whisper-service:snapshot-2.1.2
     ulimits:
       stack: 67108864
       memlock: -1
