@@ -133,7 +133,11 @@ impl LectureSearchServerImpl {
 
         info!("Starting server on {}:{}", self.host, self.port);
         Server::builder()
-            .add_service(LectureServiceServer::new(self.service))
+            .add_service(
+                LectureServiceServer::new(self.service)
+                    .max_decoding_message_size(100 * 1024 * 1024) // 100 MB
+                    .max_encoding_message_size(100 * 1024 * 1024), // 100 MB
+            )
             .serve(addr)
             .await
             .context("Could not build server")?;

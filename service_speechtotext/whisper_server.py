@@ -120,7 +120,14 @@ class WhisperServiceServicer(whisper_grpc.WhisperServiceServicer):
 def serve():
     """Start the gRPC server."""
     port = os.environ.get("WHISPER_PORT", "50051")
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+
+    max_message_length = 100 * 1024 * 1024  # 100 MB in bytes
+    options = [
+        ('grpc.max_send_message_length', max_message_length),
+        ('grpc.max_receive_message_length', max_message_length),
+    ]
+
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), options=options)
 
     whisper_grpc.add_WhisperServiceServicer_to_server(
         WhisperServiceServicer(), server

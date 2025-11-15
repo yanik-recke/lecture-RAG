@@ -21,7 +21,7 @@ Build locally from root dir (one dir above):
 
 ```shell
 # Build
-docker build -f lecture_search_service/Dockerfile -t lecture-search-service .
+docker buildx build -f lecture_search_service/Dockerfile --platform linux/amd64 -t lecture-search-service .
 
 #Run
 docker run -p 40998:40998 --network lecture-rag-dev -e RUST_LOG=DEBUG \

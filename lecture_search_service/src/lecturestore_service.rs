@@ -23,8 +23,12 @@ impl LectureStoreService {
             .await
             .context("Failed to connect to server")?;
 
+        let client = LectureStoreClient::new(channel)
+            .max_decoding_message_size(100 * 1024 * 1024) // 100 MB
+            .max_encoding_message_size(100 * 1024 * 1024); // 100 MB
+
         Ok(LectureStoreService {
-            client: Arc::new(Mutex::new(LectureStoreClient::new(channel))),
+            client: Arc::new(Mutex::new(client)),
         })
     }
 

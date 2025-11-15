@@ -49,7 +49,7 @@ docker run -p 6333:6333 -p 6334:6334 --name qdrant \
     qdrant/qdrant
     
 # Build first (see above)
-docker build -f qdrant-client-service/Dockerfile -t qdrant-client-service .
+docker buildx build -f qdrant-client-service/Dockerfile --platform linux/amd64 -t qdrant-client-service .
 
 # Then run
 docker run -p 40041:40041 --network lecture-rag-dev -e LECTURE_STORE_HOST=127.0.0.1 -e LECTURE_STORE_PORT=40041 -e QDRANT_URL=http://qdrant:6334 --rm qdrant-client-service
