@@ -72,8 +72,14 @@ impl LectureStoreServerImpl {
 
         debug!("Starting server on {}:{}", self.host, self.port);
 
+        let max_message_size = 100 * 1024 * 1024; // 100MB
+
         Server::builder()
-            .add_service(LectureStoreServer::new(service))
+            .add_service(
+                LectureStoreServer::new(service)
+                    .max_decoding_message_size(max_message_size)
+                    .max_encoding_message_size(max_message_size)
+            )
             .serve(addr)
             .await
             .context("Could not build server")?;
