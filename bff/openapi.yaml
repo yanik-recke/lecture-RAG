@@ -1,0 +1,60 @@
+openapi: "3.1.0"
+info:
+  title: "bff API"
+  description: "bff API"
+  version: "1.0.0"
+servers:
+  - url: "https://bff"
+paths:
+  /api/v1/search:
+    post:
+      summary: "POST api/v1/search"
+      operationId: "search"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+  /api/v1/transcription:
+    post:
+      summary: "POST api/v1/transcription"
+      operationId: "transcribe"
+      parameters:
+        - name: "file"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            format: "binary"
+        - name: "lectureName"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "module"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+components:
+  schemas:
+    SearchRequest:
+      type: "object"
+      properties:
+        prompt:
+          type: "string"
