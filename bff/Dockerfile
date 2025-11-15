@@ -5,15 +5,17 @@ FROM maven:3.9-eclipse-temurin-17-alpine AS build
 
 WORKDIR /app
 
+RUN apk add libc6-compat
+
 # Copy pom.xml and download dependencies
-COPY pom.xml .
+COPY ./bff/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copy source code
-COPY src ./src
+COPY ./bff/src ./src
 
 # Copy proto files from parent directory
-COPY ../proto /proto
+COPY ./proto ./proto
 
 # Build the application
 RUN mvn clean package -DskipTests
@@ -36,7 +38,7 @@ RUN chown -R spring:spring /app
 USER spring
 
 # Expose the application port
-EXPOSE 8080
+EXPOSE 40999
 
 # Set JVM options
 ENV JAVA_OPTS="-Xmx512m -Xms256m"

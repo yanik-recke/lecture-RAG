@@ -14,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/search")
+@CrossOrigin(origins = "*")
 public class SearchController {
 
     private static final Logger log = LoggerFactory.getLogger(SearchController.class);

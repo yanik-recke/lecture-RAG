@@ -14,6 +14,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/transcription")
+@CrossOrigin(origins = "*")
 public class TranscriptionController {
 
     private static final Logger log = LoggerFactory.getLogger(TranscriptionController.class);

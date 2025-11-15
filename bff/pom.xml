@@ -76,7 +76,7 @@
                 <configuration>
                     <protocVersion>${protobuf-java.version}</protocVersion>
                     <sourceDirectories>
-                        <directory>/Users/yanik/_repos/lecture-RAG/proto</directory>
+                        <directory>/app/proto</directory>
                     </sourceDirectories>
                     <binaryMavenPlugins>
                         <binaryMavenPlugin>
@@ -99,6 +99,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>de.bff.BffApplication</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
