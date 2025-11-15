@@ -4,6 +4,7 @@ use crate::lecturestore::{
     Timestamp, TranscriptEmbedding, VectorEmbedding,
 };
 use anyhow::{Context, Result};
+use log::error;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tonic::transport::{Channel, Endpoint};
@@ -51,7 +52,10 @@ impl LectureStoreService {
             .await
             .add_transcript_embedding(trans_embedding)
             .await
-            .context("Could not add transcript embedding")?
+            .map_err(|e| {
+                error!("Error while trying to add embedding: {}", e);
+                Status::internal("Error while trying to add embedding")
+            })?
             .into_inner())
     }
 
@@ -61,10 +65,12 @@ impl LectureStoreService {
 
     pub async fn perform_similarity_search(
         &self,
+        module: String,
         embedding: VectorEmbedding,
     ) -> Result<SimilaritySearchRes> {
         let req = Request::new(SimilaritySearchReq {
             embedding: Some(embedding),
+            module,
         });
 
         Ok(self

@@ -4,6 +4,7 @@ use crate::whisperservice::whisper_service_client::WhisperServiceClient;
 use anyhow::{Context, Result};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use tonic::Status;
 use tonic::transport::{Channel, Endpoint};
 
 pub struct WhisperService {
@@ -31,7 +32,19 @@ impl WhisperService {
             .await
             .transcribe(trans_req)
             .await
-            .context("Request to transcription service failed")?
+            .map_err(|e| {
+                log::error!(
+                    "Transcription request failed - Status: {:?}, Message: {}, Details: {:?}",
+                    e.code(),
+                    e.message(),
+                    e.metadata()
+                );
+                Status::internal(format!(
+                    "Transcription failed: {} (status: {:?})",
+                    e.message(),
+                    e.code()
+                ))
+            })?
             .into_inner())
     }
 }

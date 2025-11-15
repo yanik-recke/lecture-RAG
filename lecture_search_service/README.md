@@ -13,6 +13,30 @@ are created in [main.rs](src/main.rs). Their implementation
 almost makes it look like the function calls are local
 (as intended by gRPC).
 
+## Development
+
+### Docker
+
+Build locally from root dir (one dir above):
+
+```shell
+# Build
+docker build -f lecture_search_service/Dockerfile -t lecture-search-service .
+
+#Run
+docker run -p 40998:40998 --network lecture-rag-dev -e RUST_LOG=DEBUG \
+-e LECTURE_SEARCH_HOST=0.0.0.0 \
+-e LECTURE_SEARCH_PORT=40998 \
+-e LECTURESTORE_HOST=http://qdrantclient \
+-e LECTURESTORE_PORT=40041 \
+-e WHISPER_HOST=http://192.168.178.54 \
+-e WHISPER_PORT=50051 \
+-e EMBEDDING_HOST=http://192.168.178.54 \
+-e EMBEDDING_PORT=50052 \
+--rm \
+lecture-search-service:latest
+```
+
 ## Testing
 
 Each respective microservice application
