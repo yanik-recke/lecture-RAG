@@ -1,0 +1,380 @@
+'use client';
+
+import {
+  Conversation,
+  ConversationContent,
+  ConversationScrollButton,
+} from '@/components/ai-elements/conversation';
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+  MessageActions,
+  MessageAction,
+} from '@/components/ai-elements/message';
+import {
+  PromptInput,
+  PromptInputActionAddAttachments,
+  PromptInputActionMenu,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuTrigger,
+  PromptInputAttachment,
+  PromptInputAttachments,
+  PromptInputBody,
+  PromptInputButton,
+  PromptInputHeader,
+  type PromptInputMessage,
+  PromptInputSelect,
+  PromptInputSelectContent,
+  PromptInputSelectItem,
+  PromptInputSelectTrigger,
+  PromptInputSelectValue,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputFooter,
+  PromptInputTools,
+} from '@/components/ai-elements/prompt-input';
+import { useState } from 'react';
+import { CopyIcon, GlobeIcon, RefreshCcwIcon, PlusIcon, TrashIcon, MessageSquareIcon } from 'lucide-react';
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from '@/components/ai-elements/sources';
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@/components/ai-elements/reasoning';
+
+const models = [
+  {
+    name: 'GPT 4o',
+    value: 'openai/gpt-4o',
+  },
+  {
+    name: 'Deepseek R1',
+    value: 'deepseek/deepseek-r1',
+  },
+];
+
+type MessagePart = {
+  type: 'text' | 'reasoning' | 'source-url';
+  text: string;
+  url?: string;
+};
+
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  parts: MessagePart[];
+};
+
+type Chat = {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: Date;
+};
+
+export function ChatTab() {
+  const [input, setInput] = useState('');
+  const [model, setModel] = useState<string>(models[0].value);
+  const [webSearch, setWebSearch] = useState(false);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+
+  const currentChat = chats.find((chat) => chat.id === currentChatId);
+  const messages = currentChat?.messages || [];
+
+  const createNewChat = () => {
+    const newChat: Chat = {
+      id: `chat-${Date.now()}`,
+      title: 'New Chat',
+      messages: [],
+      createdAt: new Date(),
+    };
+    setChats((prev) => [newChat, ...prev]);
+    setCurrentChatId(newChat.id);
+    return newChat.id;
+  };
+
+  const handleSubmit = (message: PromptInputMessage) => {
+    const hasText = Boolean(message.text);
+    const hasAttachments = Boolean(message.files?.length);
+
+    if (!(hasText || hasAttachments)) {
+      return;
+    }
+
+    // Create new chat if none exists
+    let chatId = currentChatId;
+    if (!chatId) {
+      chatId = createNewChat();
+    }
+
+    // Create user message
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      parts: [
+        {
+          type: 'text',
+          text: message.text || 'Sent with attachments',
+        },
+      ],
+    };
+
+    // Create assistant response (simple echo for now)
+    const assistantMessage: ChatMessage = {
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      parts: [
+        {
+          type: 'text',
+          text: `Echo: ${message.text || 'Sent with attachments'}`,
+        },
+      ],
+    };
+
+    // Add messages to current chat
+    setChats((prev) =>
+      prev.map((chat) => {
+        if (chat.id === chatId) {
+          const updatedMessages = [...chat.messages, userMessage, assistantMessage];
+          // Update chat title with first message if it's still "New Chat"
+          const updatedTitle = chat.title === 'New Chat' && message.text
+            ? message.text.slice(0, 50) + (message.text.length > 50 ? '...' : '')
+            : chat.title;
+          return { ...chat, messages: updatedMessages, title: updatedTitle };
+        }
+        return chat;
+      })
+    );
+    setInput('');
+  };
+
+  const regenerate = () => {
+    if (!currentChatId) return;
+
+    // Find the last assistant message and regenerate it
+    const lastAssistantIndex = messages.findLastIndex((m) => m.role === 'assistant');
+    if (lastAssistantIndex === -1) return;
+
+    setChats((prev) =>
+      prev.map((chat) => {
+        if (chat.id === currentChatId) {
+          const updatedMessages = [...chat.messages];
+          const lastAssistantMessage = updatedMessages[lastAssistantIndex];
+
+          // Simple regeneration - just add a timestamp
+          lastAssistantMessage.parts = lastAssistantMessage.parts.map((part) => ({
+            ...part,
+            text: `${part.text} (regenerated at ${new Date().toLocaleTimeString()})`,
+          }));
+
+          return { ...chat, messages: updatedMessages };
+        }
+        return chat;
+      })
+    );
+  };
+
+  const deleteChat = (chatId: string) => {
+    setChats((prev) => prev.filter((chat) => chat.id !== chatId));
+    if (currentChatId === chatId) {
+      setCurrentChatId(null);
+    }
+  };
+
+  return (
+    <div className="flex h-full gap-4">
+      {/* Sidebar */}
+      <div className="w-64 flex-shrink-0 border-r border-border flex flex-col">
+        <div className="p-3 border-b border-border">
+          <button
+            onClick={createNewChat}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          >
+            <PlusIcon className="size-4" />
+            <span>New Chat</span>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {chats.length === 0 ? (
+            <div className="p-4 text-center text-muted-foreground text-sm">
+              No chats yet. Start a new chat!
+            </div>
+          ) : (
+            <div className="p-2 space-y-1">
+              {chats.map((chat) => (
+                <div
+                  key={chat.id}
+                  className={`group flex items-center gap-2 p-3 rounded-md cursor-pointer transition-colors ${
+                    currentChatId === chat.id
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-accent/50'
+                  }`}
+                >
+                  <MessageSquareIcon className="size-4 flex-shrink-0" />
+                  <button
+                    onClick={() => setCurrentChatId(chat.id)}
+                    className="flex-1 text-left text-sm truncate"
+                    title={chat.title}
+                  >
+                    {chat.title}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteChat(chat.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity"
+                    title="Delete chat"
+                  >
+                    <TrashIcon className="size-3 text-destructive" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-hidden">
+          <Conversation className="h-full overflow-x-hidden">
+          <ConversationContent>
+            {messages.map((message) => (
+              <div key={message.id}>
+                {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
+                  <Sources>
+                    <SourcesTrigger
+                      count={
+                        message.parts.filter(
+                          (part) => part.type === 'source-url',
+                        ).length
+                      }
+                    />
+                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
+                      <SourcesContent key={`${message.id}-${i}`}>
+                        <Source
+                          key={`${message.id}-${i}`}
+                          href={part.url}
+                          title={part.url}
+                        />
+                      </SourcesContent>
+                    ))}
+                  </Sources>
+                )}
+                {message.parts.map((part, i) => {
+                  switch (part.type) {
+                    case 'text':
+                      return (
+                        <Message key={`${message.id}-${i}`} from={message.role}>
+                          <MessageContent className="max-w-full">
+                            <MessageResponse className="break-words overflow-wrap-anywhere whitespace-pre-wrap chat-message-text">
+                              {part.text}
+                            </MessageResponse>
+                          </MessageContent>
+                          {message.role === 'assistant' && i === messages.length - 1 && (
+                            <MessageActions>
+                              <MessageAction
+                                onClick={() => regenerate()}
+                                label="Retry"
+                              >
+                                <RefreshCcwIcon className="size-3" />
+                              </MessageAction>
+                              <MessageAction
+                                onClick={() =>
+                                  navigator.clipboard.writeText(part.text)
+                                }
+                                label="Copy"
+                              >
+                                <CopyIcon className="size-3" />
+                              </MessageAction>
+                            </MessageActions>
+                          )}
+                        </Message>
+                      );
+                    case 'reasoning':
+                      return (
+                        <Reasoning
+                          key={`${message.id}-${i}`}
+                          className="w-full"
+                          isStreaming={false}
+                        >
+                          <ReasoningTrigger />
+                          <ReasoningContent>{part.text}</ReasoningContent>
+                        </Reasoning>
+                      );
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            ))}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+        </div>
+
+        <div className="flex-shrink-0 mt-4">
+          <PromptInput onSubmit={handleSubmit} globalDrop multiple>
+            <PromptInputHeader>
+              <PromptInputAttachments>
+                {(attachment) => <PromptInputAttachment data={attachment} />}
+              </PromptInputAttachments>
+            </PromptInputHeader>
+            <PromptInputBody>
+              <PromptInputTextarea
+                onChange={(e) => setInput(e.target.value)}
+                value={input}
+                className="chat-input-text"
+              />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools>
+                <PromptInputActionMenu>
+                  <PromptInputActionMenuTrigger />
+                  <PromptInputActionMenuContent>
+                    <PromptInputActionAddAttachments />
+                  </PromptInputActionMenuContent>
+                </PromptInputActionMenu>
+                <PromptInputButton
+                  variant={webSearch ? 'default' : 'ghost'}
+                  onClick={() => setWebSearch(!webSearch)}
+                >
+                  <GlobeIcon size={16} />
+                  <span>Search</span>
+                </PromptInputButton>
+                <PromptInputSelect
+                  onValueChange={(value) => {
+                    setModel(value);
+                  }}
+                  value={model}
+                >
+                  <PromptInputSelectTrigger>
+                    <PromptInputSelectValue />
+                  </PromptInputSelectTrigger>
+                  <PromptInputSelectContent>
+                    {models.map((model) => (
+                      <PromptInputSelectItem key={model.value} value={model.value}>
+                        {model.name}
+                      </PromptInputSelectItem>
+                    ))}
+                  </PromptInputSelectContent>
+                </PromptInputSelect>
+              </PromptInputTools>
+              <PromptInputSubmit disabled={!input} />
+            </PromptInputFooter>
+          </PromptInput>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatTab;

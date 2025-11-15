@@ -1,0 +1,70 @@
+services:
+  bff:
+    container_name: bff
+    image: bff
+    environment:
+      - SERVER_PORT=40999
+      - LECTURE_SERVICE_PORT=40998
+      - LECTURE_SERVICE_HOST=lecture-search-service
+    ports:
+      - 40999:40999
+    networks:
+      - lecture-rag-network
+    depends_on:
+      - lecture-search-service
+
+  lecture-search-service:
+    container_name: lecture-search-service
+    image: lecture-search-service
+    environment:
+      - LECTURE_SEARCH_HOST=0.0.0.0
+      - LECTURE_SEARCH_PORT=40998
+      - LECTURESTORE_HOST=http://qdrant-client
+      - LECTURESTORE_PORT=40041
+      - WHISPER_HOST=http://192.168.178.54
+      - WHISPER_PORT=50051
+      - EMBEDDING_HOST=http://192.168.178.54
+      - EMBEDDING_PORT=50052
+      - RUST_LOG=DEBUG
+    networks:
+      - lecture-rag-network
+    depends_on:
+      - qdrant-client
+
+  qdrant-client:
+    container_name: qdrant-client
+    image: qdrant-client-service
+    environment:
+      - LECTURE_STORE_HOST=0.0.0.0
+      - LECTURE_STORE_PORT=40041
+      - QDRANT_URL=http://qdrant:6334
+      - RUST_LOG=DEBUG
+    networks:
+      - lecture-rag-network
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: on-failure
+
+  qdrant:
+    container_name: qdrant
+    restart: always
+    image: qdrant/qdrant
+    volumes:
+      - /Users/yanik/_repos/qdrant_local/qdrant_storage:/qdrant/storage
+    networks:
+      - lecture-rag-network
+    ports:
+      - 6333:6333
+      - 6334:6334
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    
+
+networks:
+  lecture-rag-network:
+    driver: bridge
