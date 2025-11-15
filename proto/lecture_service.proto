@@ -31,6 +31,7 @@ message Prompt {
 
 message SearchReq {
   Prompt prompt_payload = 1;
+  string module = 2;
 }
 
 // The response for a search request is just the created response from a large language model (or an error)
