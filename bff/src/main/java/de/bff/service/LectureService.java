@@ -42,7 +42,7 @@ public class LectureService {
         }
     }
 
-    public LectureServiceOuterClass.SearchRes search(String prompt) {
+    public LectureServiceOuterClass.SearchRes search(String prompt, String module) {
         log.info("Searching with prompt: {}", prompt);
 
         LectureServiceOuterClass.Prompt promptPayload = LectureServiceOuterClass.Prompt.newBuilder()
@@ -50,6 +50,7 @@ public class LectureService {
                 .build();
 
         LectureServiceOuterClass.SearchReq request = LectureServiceOuterClass.SearchReq.newBuilder()
+                .setModule(module)
                 .setPromptPayload(promptPayload)
                 .build();
 

@@ -8,7 +8,7 @@ use crate::lectureservice::{SearchReq, SearchRes, TranscribeReq, TranscribeRes};
 use crate::lecturestore_service::LectureStoreService;
 use crate::whisper_service::WhisperService;
 use anyhow::{Context, Result};
-use log::info;
+use log::{error, info};
 use std::net::SocketAddr;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
@@ -234,6 +234,60 @@ impl LectureService for LectureSearchService {
     }
 
     async fn search(&self, request: Request<SearchReq>) -> Result<Response<SearchRes>, Status> {
-        Err(Status::unimplemented("Not implemented"))
+        let search_req = request.into_inner();
+
+        let prompt = search_req
+            .prompt_payload
+            .ok_or_else(|| Status::invalid_argument("Missing prompt payload in search request"))?;
+
+        let embed_res = self
+            .embedding_service
+            .embed(prompt.prompt)
+            .await
+            .map_err(|e| {
+                error!("There was an error when trying to embed the prompt: {}", e);
+                Status::internal("An error occurred while trying to embed the prompt")
+            })?;
+
+        let embedding = match embed_res.result {
+            Some(embeddingservice::new_embedding_res::Result::Vec(vec)) => vec,
+            Some(embeddingservice::new_embedding_res::Result::ErrorMsg(err)) => {
+                return Err(Status::internal(format!("Embedding failed: {}", err)));
+            }
+            None => return Err(Status::internal("Embedding service returned empty result")),
+        };
+
+        let result = self
+            .lecture_store_service
+            .perform_similarity_search(search_req.module, embedding)
+            .await
+            .map_err(|e| {
+                error!(
+                    "There was an error while performing the similarity search: {}",
+                    e
+                );
+                Status::internal("Error while performing similarity search")
+            })?;
+
+        // TODO call LLM with results
+        let mut response: String = "".to_string();
+        for embedding in result.result_docs {
+            let timestamp = embedding
+                .timestamp
+                .ok_or_else(|| Status::internal("Field timestamp missing in embedding"))?;
+            response.push_str(&format!(
+                "[{} | Start: {} | End: {}] {}\n",
+                embedding.lecture_name,
+                timestamp.timestamp_start,
+                timestamp.timestamp_end,
+                &*embedding.raw_content
+            ));
+        }
+
+        Ok(Response::new(SearchRes {
+            result: Some(lectureservice::search_res::Result::Response(
+                response.trim_end().to_string(),
+            )),
+        }))
     }
 }

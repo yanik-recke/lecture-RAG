@@ -189,10 +189,11 @@ impl LectureStore for LectureStoreService {
             Status::invalid_argument("Field embedding is missing in request for similarity search")
         })?;
 
+        // TODO similarity search should also be possible for _summary collections
         let res = self
             .client
             .query(
-                QueryPointsBuilder::new(req.module.clone())
+                QueryPointsBuilder::new(format!("{}_embedding", req.module).clone())
                     .query(Query::new_nearest(vector.vector_data))
                     .with_payload(true)
                     .with_vectors(true)
@@ -250,7 +251,10 @@ async fn check_and_create_collection(client: &Qdrant, collection_name: &str) -> 
             Ok(())
         }
         Err(e) => {
-            error!("Failed to check if collection '{}' exists: {}", collection_name, e);
+            error!(
+                "Failed to check if collection '{}' exists: {}",
+                collection_name, e
+            );
             Err(Status::internal(format!(
                 "Failed to check if collection exists: {}",
                 e

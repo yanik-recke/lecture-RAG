@@ -48,14 +48,15 @@ import {
   ReasoningTrigger,
 } from '@/components/ai-elements/reasoning';
 
+// TODO get collections from backend
 const models = [
   {
-    name: 'GPT 4o',
-    value: 'openai/gpt-4o',
+    name: 'Modul 1',
+    value: 'modul1_embedding',
   },
   {
-    name: 'Deepseek R1',
-    value: 'deepseek/deepseek-r1',
+    name: 'Modul 2',
+    value: 'modul2_embedding',
   },
 ];
 
@@ -100,7 +101,7 @@ export function ChatTab() {
     return newChat.id;
   };
 
-  const handleSubmit = (message: PromptInputMessage) => {
+  const handleSubmit = async (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
     const hasAttachments = Boolean(message.files?.length);
 
@@ -126,23 +127,24 @@ export function ChatTab() {
       ],
     };
 
-    // Create assistant response (simple echo for now)
-    const assistantMessage: ChatMessage = {
-      id: `assistant-${Date.now()}`,
+    // Create temporary assistant response with loading state
+    const assistantMessageId = `assistant-${Date.now()}`;
+    const loadingMessage: ChatMessage = {
+      id: assistantMessageId,
       role: 'assistant',
       parts: [
         {
           type: 'text',
-          text: `Echo: ${message.text || 'Sent with attachments'}`,
+          text: 'Thinking...',
         },
       ],
     };
 
-    // Add messages to current chat
+    // Add user message and loading message to chat
     setChats((prev) =>
       prev.map((chat) => {
         if (chat.id === chatId) {
-          const updatedMessages = [...chat.messages, userMessage, assistantMessage];
+          const updatedMessages = [...chat.messages, userMessage, loadingMessage];
           // Update chat title with first message if it's still "New Chat"
           const updatedTitle = chat.title === 'New Chat' && message.text
             ? message.text.slice(0, 50) + (message.text.length > 50 ? '...' : '')
@@ -153,6 +155,78 @@ export function ChatTab() {
       })
     );
     setInput('');
+
+    try {
+      // Call the search API 
+      // TODO url from environment variable
+      const response = await fetch('http://localhost:40999/api/v1/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: message.text,
+          module: model,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const responseText = await response.text();
+
+      // Update the assistant message with the actual response
+      setChats((prev) =>
+        prev.map((chat) => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              messages: chat.messages.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      parts: [
+                        {
+                          type: 'text',
+                          text: responseText,
+                        },
+                      ],
+                    }
+                  : msg
+              ),
+            };
+          }
+          return chat;
+        })
+      );
+    } catch (error) {
+      console.error('Error calling search API:', error);
+      // Update the assistant message with error
+      setChats((prev) =>
+        prev.map((chat) => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              messages: chat.messages.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      parts: [
+                        {
+                          type: 'text',
+                          text: `Error: Failed to get response from the server. ${error instanceof Error ? error.message : 'Unknown error'}`,
+                        },
+                      ],
+                    }
+                  : msg
+              ),
+            };
+          }
+          return chat;
+        })
+      );
+    }
   };
 
   const regenerate = () => {

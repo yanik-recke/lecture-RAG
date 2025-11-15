@@ -30,7 +30,7 @@ public class SearchController {
         log.info("Received search request with prompt: {}", searchRequest.prompt());
 
         try {
-            LectureServiceOuterClass.SearchRes response = lectureService.search(searchRequest.prompt());
+            LectureServiceOuterClass.SearchRes response = lectureService.search(searchRequest.prompt(), searchRequest.module());
 
             if (response.hasErrorMessage()) {
                 log.error("Search failed: {}", response.getErrorMessage());
