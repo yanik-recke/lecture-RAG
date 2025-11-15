@@ -58,9 +58,13 @@ const models = [
     name: 'Modul 2',
     value: 'modul2_embedding',
   },
-    {
+  {
     name: 'Berechenbarkeit und Komplexität',
     value: 'buk',
+  },
+  {
+    name: 'Berechenbarkeit und Komplexität 30 sec',
+    value: 'buk2',
   },
 ];
 
