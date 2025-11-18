@@ -95,7 +95,7 @@ class WhisperServiceServicer(whisper_grpc.WhisperServiceServicer):
                     chunk_count += 1
 
                     # When we have 5 chunks, create a combined chunk
-                    if chunk_count == 5:
+                    if chunk_count == 7:
                         # Create timestamp object
                         timestamp = lecture_store_pb2.Timestamp(
                             timestamp_start=temp_start,
