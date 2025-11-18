@@ -66,6 +66,10 @@ const models = [
     name: 'Berechenbarkeit und Komplexität 30 sec',
     value: 'buk2',
   },
+    {
+    name: 'Berechenbarkeit und Komplexität 7 Chunks',
+    value: 'buk3',
+  },
 ];
 
 type MessagePart = {
