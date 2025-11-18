@@ -38,7 +38,6 @@ class WhisperServiceServicer(whisper_grpc.WhisperServiceServicer):
             tokenizer=processor.tokenizer,
             feature_extractor=processor.feature_extractor,
             device=device,
-            chunk_length_s=30,
             torch_dtype=torch_dtype,
             return_timestamps=True
         )
@@ -79,16 +78,52 @@ class WhisperServiceServicer(whisper_grpc.WhisperServiceServicer):
                 full_text = result['text']
                 chunks = []
 
+                # Temporary variables to hold combined chunks
+                temp_texts = []
+                temp_start = None
+                temp_end = None
+                chunk_count = 0
+
                 for chunk_data in result['chunks']:
-                    # Create timestamp object
+                    # Initialize temp_start with first chunk's start time
+                    if chunk_count == 0:
+                        temp_start = 0.1 if chunk_data['timestamp'][0] == 0 else chunk_data['timestamp'][0]
+
+                    # Accumulate text and update end timestamp
+                    temp_texts.append(chunk_data['text'])
+                    temp_end = chunk_data['timestamp'][1]
+                    chunk_count += 1
+
+                    # When we have 5 chunks, create a combined chunk
+                    if chunk_count == 5:
+                        # Create timestamp object
+                        timestamp = lecture_store_pb2.Timestamp(
+                            timestamp_start=temp_start,
+                            timestamp_end=temp_end
+                        )
+
+                        # Create chunk object with combined text
+                        chunk = whisper_pb2.Chunk(
+                            text=' '.join(temp_texts),
+                            timestamp=timestamp
+                        )
+                        chunks.append(chunk)
+
+                        # Reset temporary variables
+                        temp_texts = []
+                        temp_start = None
+                        temp_end = None
+                        chunk_count = 0
+
+                # Handle remaining chunks (less than 5)
+                if chunk_count > 0:
                     timestamp = lecture_store_pb2.Timestamp(
-                        timestamp_start=0.1 if chunk_data['timestamp'][0] == 0 else chunk_data['timestamp'][0],
-                        timestamp_end=chunk_data['timestamp'][1]
+                        timestamp_start=temp_start,
+                        timestamp_end=temp_end
                     )
 
-                    # Create chunk object
                     chunk = whisper_pb2.Chunk(
-                        text=chunk_data['text'],
+                        text=' '.join(temp_texts),
                         timestamp=timestamp
                     )
                     chunks.append(chunk)
