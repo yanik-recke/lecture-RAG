@@ -273,6 +273,14 @@ impl LectureService for LectureSearchService {
                 Status::internal("Error while performing similarity search")
             })?;
 
+        // Helper function to format seconds as mm:ss
+        fn format_timestamp(seconds: f32) -> String {
+            let total_seconds = seconds as u32;
+            let minutes = total_seconds / 60;
+            let secs = total_seconds % 60;
+            format!("{:02}:{:02}", minutes, secs)
+        }
+
         // TODO call LLM with results
         let mut response: String = "".to_string();
         for embedding in result.result_docs {
@@ -282,8 +290,8 @@ impl LectureService for LectureSearchService {
             response.push_str(&format!(
                 "[{} | Start: {} | End: {}] {}\n",
                 embedding.lecture_name,
-                timestamp.timestamp_start,
-                timestamp.timestamp_end,
+                format_timestamp(timestamp.timestamp_start),
+                format_timestamp(timestamp.timestamp_end),
                 &*embedding.raw_content
             ));
         }
