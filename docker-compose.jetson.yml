@@ -2,6 +2,7 @@ services:
   embedding:
     container_name: service-embedding
     image: ghcr.io/yanik-recke/lecture-rag/embedding-service:snapshot-1.0.1
+    restart: always
     environment:
       - HF_TOKEN=$HF_TOKEN
     ulimits:
@@ -23,6 +24,7 @@ services:
   whisper:
     container_name: service-whisper
     image: ghcr.io/yanik-recke/lecture-rag/whisper-service:snapshot-3.0.0
+    restart: always
     ulimits:
       stack: 67108864
       memlock: -1
