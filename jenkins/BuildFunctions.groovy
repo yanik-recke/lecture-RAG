@@ -3,10 +3,10 @@
  */
 def determineVersion(String serviceDir) {
     if (env.IS_RELEASE == 'true') {
-        return "${params.MANUAL_VERSION}-RELEASE"
+        return "RELEASE-${params.MANUAL_VERSION}"
     } else {
         def version = readFile("${serviceDir}/VERSION").trim()
-        return "${version}-SNAPSHOT"
+        return "SNAPSHOT-${version}"
     }
 }
 
@@ -14,42 +14,16 @@ def determineVersion(String serviceDir) {
  * Build a Docker image for a service
  */
 def buildService(String serviceName, String serviceDir, String version) {
-    def imageName = "lr-${env.REGISTRY}/${env.REGISTRY_NAMESPACE}/${serviceName}"
+    echo 'Building and pushing Docker image using buildctl...'
     
-    echo "Building ${imageName}:${version}"
-    
-    docker.build(
-        "${imageName}:${version}",
-        "./${serviceDir}"
-    )
-    
-    // Tag appropriately based on build type
-    if (env.IS_RELEASE == 'true') {
-        sh "docker tag ${imageName}:${version} ${imageName}:latest"
-        echo "✓ Tagged as 'latest' (release build)"
-    } else {
-        sh "docker tag ${imageName}:${version} ${imageName}:${env.BRANCH_NAME}-snapshot-latest"
-        echo "✓ Tagged as '${env.BRANCH_NAME}-snapshot-latest'"
-    }
-}
-
-/**
- * Push a Docker image to registry
- */
-def pushService(String serviceName, String version) {
-    def imageName = "${env.REGISTRY}/${env.REGISTRY_NAMESPACE}/${serviceName}"
-    
-    // Push version tag
-    sh "docker push ${imageName}:${version}"
-    echo "✓ Pushed ${imageName}:${version}"
-    
-    // Push additional tags
-    if (env.IS_RELEASE == 'true') {
-        sh "docker push ${imageName}:latest"
-        echo "✓ Pushed ${imageName}:latest"
-    } else {
-        sh "docker push ${imageName}:${env.BRANCH_NAME}-snapshot-latest"
-        echo "✓ Pushed ${imageName}:${env.BRANCH_NAME}-snapshot-latest"
+    container('jenkins-agent-buildkit') {
+        sh """
+            buildctl build \
+                --frontend=dockerfile.v0 \
+                --local context=. \
+                --local dockerfile=./${serviceDir} \
+                --output type=image,name=${REPO}/${serviceName}:${version},push=true
+        """
     }
 }
 
@@ -75,11 +49,11 @@ def detectChanges(List<String> services, String changesOutput) {
 
 def getServiceConfig() {
     return [
-        // [
-        //     name: 'service-database',
-        //     dir: 'service_database',
-        //     envVarPrefix: 'DB'
-        // ]
+        [
+            name: 'lecture_search_service',
+            dir: 'lecture_search_service',
+            envVarPrefix: 'FACILITATOR'
+        ]
         // [
         //     name: 'service-embedding',
         //     dir: 'service_embedding',

@@ -51,24 +51,20 @@ import {
 // TODO get collections from backend
 const models = [
   {
-    name: 'Modul 1',
-    value: 'modul1_embedding',
-  },
-  {
-    name: 'Modul 2',
-    value: 'modul2_embedding',
-  },
-  {
-    name: 'Berechenbarkeit und Komplexität',
-    value: 'buk',
-  },
-  {
-    name: 'Berechenbarkeit und Komplexität 30 sec',
-    value: 'buk2',
+    name: 'Berechenbarkeit',
+    value: 'berechenbarkeit',
   },
     {
-    name: 'Berechenbarkeit und Komplexität 7 Chunks',
-    value: 'buk3',
+    name: 'Komplexität',
+    value: 'komplexitaet',
+  },
+  {
+    name: 'Formale Spezifikationen',
+    value: 'fs',
+  },
+    {
+    name: 'Verifikation',
+    value: 'veri',
   },
 ];
 
