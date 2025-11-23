@@ -3,7 +3,7 @@ import groovy.transform.Field
 @Field def buildFunctions
 
 pipeline {
-    agent any
+    agent { label 'buildkit-agent' }
     
     parameters {
         string(
@@ -17,8 +17,7 @@ pipeline {
     }
     
     environment {
-        REGISTRY = 'ghcr.io'
-        REGISTRY_NAMESPACE = 'yanik-recke'
+        REPO = 'ghcr.io/yanik-recke/lecture-rag'
         REGISTRY_CREDENTIAL = 'REGISTRY_CREDENTIAL'
     }
     
@@ -81,6 +80,19 @@ pipeline {
                 }
             }
         }
+
+        stage('Login to GHCR') {
+            steps {
+                container('jenkins-agent-buildkit') {
+                    withCredentials([usernamePassword(credentialsId: 'REGISTRY_CREDENTIALS', usernameVariable: 'GHCR_USERNAME', passwordVariable: 'GHCR_TOKEN')]) {
+                        sh '''
+                            mkdir -p ~/.docker
+                            echo "{\\"auths\\":{\\"ghcr.io\\":{\\"auth\\":\\"$(echo -n ${GHCR_USERNAME}:${GHCR_TOKEN} | base64)\\"}}}" > ~/.docker/config.json
+                        '''
+                    }
+                }
+            }
+        }
         
         stage('Build Services') {
             steps {
@@ -112,31 +124,9 @@ pipeline {
                 }
             }
         }
-        
-        stage('Push to Registry') {
-            steps {
-                script {
-                    def services = buildFunctions.getServiceConfig()
-                    
-                    docker.withRegistry("https://${REGISTRY}", REGISTRY_CREDENTIAL) {
-                        services.each { service ->
-                            def changedEnvVar = "${service.dir.toUpperCase().replace('/', '_')}_CHANGED"
-                            
-                            if (env."${changedEnvVar}" == 'true') {
-                                def version = env."${service.envVarPrefix}_VERSION"
-                                buildFunctions.pushService(service.name, version)
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
     
     post {
-        always {
-            sh 'docker system prune -f'
-        }
         success {
             script {
                 def services = buildFunctions.getServiceConfig()
