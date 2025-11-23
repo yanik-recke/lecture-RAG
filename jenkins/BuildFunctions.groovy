@@ -21,7 +21,8 @@ def buildService(String serviceName, String serviceDir, String version) {
             buildctl build \
                 --frontend=dockerfile.v0 \
                 --local context=. \
-                --local dockerfile=. \
+                --local dockerfile= ./${serviceDir} \
+                --platform linux/amd64 \
                 --output type=image,name=${REPO}/${serviceName}:SNAPSHOT-${version},push=true
         """
     }
