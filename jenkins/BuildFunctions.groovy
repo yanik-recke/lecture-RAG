@@ -3,10 +3,10 @@
  */
 def determineVersion(String serviceDir) {
     if (env.IS_RELEASE == 'true') {
-        return "${params.MANUAL_VERSION}-RELEASE"
+        return "RELEASE-${params.MANUAL_VERSION}"
     } else {
         def version = readFile("${serviceDir}/VERSION").trim()
-        return "${version}-SNAPSHOT"
+        return "SNAPSHOT-${version}"
     }
 }
 
@@ -22,7 +22,7 @@ def buildService(String serviceName, String serviceDir, String version) {
                 --frontend=dockerfile.v0 \
                 --local context=. \
                 --local dockerfile=./${serviceDir} \
-                --output type=image,name=${REPO}/${serviceName}:SNAPSHOT-${version},push=true
+                --output type=image,name=${REPO}/${serviceName}:${version},push=true
         """
     }
 }
