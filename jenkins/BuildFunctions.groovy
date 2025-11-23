@@ -22,7 +22,7 @@ def buildService(String serviceName, String serviceDir, String version) {
                 --frontend=dockerfile.v0 \
                 --local context=. \
                 --local dockerfile=. \
-                --output type=image,name=${REPO}/${IMAGE_NAME}:SNAPSHOT-${version},push=true
+                --output type=image,name=${REPO}/${serviceName}:SNAPSHOT-${version},push=true
         """
     }
 }
