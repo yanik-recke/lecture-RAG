@@ -181,7 +181,7 @@ export function ChatTab() {
       if (!apiUrl) {
         throw new Error('API URL not configured');
       }
-      const response = await fetch(`${apiUrl}/api/v1/search`, {
+      const response = await fetch(`/api/v1/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

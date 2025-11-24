@@ -79,7 +79,7 @@ export function TranscribeTab() {
         throw new Error('API URL not configured');
       }
       const response = await fetch(
-        `${apiUrl}/api/v1/transcription?lectureName=${encodeURIComponent(lectureName)}&module=${encodeURIComponent(module)}`,
+        `/api/v1/transcription?lectureName=${encodeURIComponent(lectureName)}&module=${encodeURIComponent(module)}`,
         {
           method: "POST",
           body: formData,
