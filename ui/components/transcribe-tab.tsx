@@ -63,8 +63,9 @@ export function TranscribeTab() {
       const formData = new FormData()
       formData.append("file", file)
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:40999'
       const response = await fetch(
-        `http://localhost:40999/api/v1/transcription?lectureName=${encodeURIComponent(lectureName)}&module=${encodeURIComponent(module)}`,
+        `${apiUrl}/api/v1/transcription?lectureName=${encodeURIComponent(lectureName)}&module=${encodeURIComponent(module)}`,
         {
           method: "POST",
           body: formData,
