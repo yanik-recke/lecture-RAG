@@ -34,7 +34,7 @@ import {
   PromptInputFooter,
   PromptInputTools,
 } from '@/components/ai-elements/prompt-input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CopyIcon, GlobeIcon, RefreshCcwIcon, PlusIcon, TrashIcon, MessageSquareIcon } from 'lucide-react';
 import {
   Source,
@@ -93,9 +93,21 @@ export function ChatTab() {
   const [webSearch, setWebSearch] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [apiUrl, setApiUrl] = useState<string>('');
 
   const currentChat = chats.find((chat) => chat.id === currentChatId);
   const messages = currentChat?.messages || [];
+
+  // Fetch API URL on mount
+  useEffect(() => {
+    fetch('/api/config')
+      .then((res) => res.json())
+      .then((data) => setApiUrl(data.apiUrl))
+      .catch((err) => {
+        console.error('Failed to fetch config:', err);
+        setApiUrl('http://localhost:40999');
+      });
+  }, []);
 
   const createNewChat = () => {
     const newChat: Chat = {
@@ -166,7 +178,9 @@ export function ChatTab() {
 
     try {
       // Call the search API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:40999';
+      if (!apiUrl) {
+        throw new Error('API URL not configured');
+      }
       const response = await fetch(`${apiUrl}/api/v1/search`, {
         method: 'POST',
         headers: {
