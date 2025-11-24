@@ -53,12 +53,12 @@ def getServiceConfig() {
             name: 'lecture_search_service',
             dir: 'lecture_search_service',
             envVarPrefix: 'FACILITATOR'
+        ],
+        [
+            name: 'qdrant_client_service',
+            dir: 'qdrant-client-service',
+            envVarPrefix: 'QDRANT-CLIENT'
         ]
-        // [
-        //     name: 'service-embedding',
-        //     dir: 'service_embedding',
-        //     envVarPrefix: 'EMBEDDING'
-        // ],
         // [
         //     name: 'service-frontend',
         //     dir: 'service_frontend',
