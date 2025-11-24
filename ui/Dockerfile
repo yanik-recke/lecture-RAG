@@ -3,7 +3,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
+COPY ui/package.json ui/package-lock.json* ./
 RUN npm ci
 
 # Stage 2: Builder
@@ -12,7 +12,7 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY ui/ .
 
 # Build the Next.js application
 RUN npm run build
