@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,19 +14,7 @@ export function TranscribeTab() {
   const [module, setModule] = useState("")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<string | null>(null)
-  const [apiUrl, setApiUrl] = useState<string>('')
   const { toast } = useToast()
-
-  // Fetch API URL on mount
-  useEffect(() => {
-    fetch('/api/config')
-      .then((res) => res.json())
-      .then((data) => setApiUrl(data.apiUrl))
-      .catch((err) => {
-        console.error('Failed to fetch config:', err);
-        setApiUrl('http://localhost:40999');
-      });
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -75,9 +63,6 @@ export function TranscribeTab() {
       const formData = new FormData()
       formData.append("file", file)
 
-      if (!apiUrl) {
-        throw new Error('API URL not configured');
-      }
       const response = await fetch(
         `/api/v1/transcription?lectureName=${encodeURIComponent(lectureName)}&module=${encodeURIComponent(module)}`,
         {
