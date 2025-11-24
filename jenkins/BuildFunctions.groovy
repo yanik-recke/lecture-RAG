@@ -58,12 +58,12 @@ def getServiceConfig() {
             name: 'qdrant_client_service',
             dir: 'qdrant-client-service',
             envVarPrefix: 'QDRANT-CLIENT'
+        ],
+        [
+            name: 'bff',
+            dir: 'bff',
+            envVarPrefix: 'BFF'
         ]
-        // [
-        //     name: 'service-frontend',
-        //     dir: 'service_frontend',
-        //     envVarPrefix: 'FRONTEND'
-        // ],
         // [
         //     name: 'service-retrieval',
         //     dir: 'service_retrieval',
