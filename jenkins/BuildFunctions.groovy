@@ -63,12 +63,12 @@ def getServiceConfig() {
             name: 'bff',
             dir: 'bff',
             envVarPrefix: 'BFF'
+        ],
+        [
+            name: 'ui',
+            dir: 'ui',
+            envVarPrefix: 'UI'
         ]
-        // [
-        //     name: 'service-retrieval',
-        //     dir: 'service_retrieval',
-        //     envVarPrefix: 'RETRIEVAL'
-        // ],
         // [
         //     name: 'service-speechtotext',
         //     dir: 'service_speechtotext',
