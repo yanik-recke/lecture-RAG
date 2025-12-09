@@ -40,7 +40,4 @@ async fn test_fetch_module_names() {
         .unwrap();
 
     assert_eq!(initial_module_len + 3, names.len());
-    for name in names {
-        println!("Module: {}", name);
-    }
 }
