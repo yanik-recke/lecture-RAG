@@ -1,26 +1,17 @@
-use crate::metadataservice::{MetadataLecture, MetadataModule};
+use crate::metadataservice::MetadataLecture;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MongoMetadataModule {
     pub(crate) name: String,
-    lectures: Vec<MongoMetadataLecture>,
-}
-
-impl From<MongoMetadataModule> for MetadataModule {
-    fn from(value: MongoMetadataModule) -> Self {
-        MetadataModule {
-            name: value.name,
-            lectures: value.lectures.into_iter().map(|l| l.into()).collect(),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MongoMetadataLecture {
-    name: String,
-    lecture_id: String,
-    summary: String,
+    pub(crate) name: String,
+    pub(crate) lecture_id: String,
+    pub(crate) summary: String,
+    pub(crate) module_name: String,
 }
 
 impl From<MongoMetadataLecture> for MetadataLecture {

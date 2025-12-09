@@ -1,19 +1,11 @@
-mod models;
-mod repository;
-mod service;
-
-use crate::metadataservice::metadata_service_server::MetadataServiceServer;
-use crate::models::{MongoMetadataLecture, MongoMetadataModule};
-use crate::repository::MetadataServicer;
 use anyhow::{Context, Result};
 use log::info;
 use mongodb::{Client, Collection};
+use service_metadata::metadataservice::metadata_service_server::MetadataServiceServer;
+use service_metadata::models::{MongoMetadataLecture, MongoMetadataModule};
+use service_metadata::repository::MetadataServicer;
 use std::net::SocketAddr;
 use tonic::transport::Server;
-
-pub mod metadataservice {
-    tonic::include_proto!("metadataservice");
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {

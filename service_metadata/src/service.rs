@@ -1,13 +1,21 @@
 use crate::metadataservice::metadata_service_server::MetadataService;
 use crate::metadataservice::{
-    DeleteLectureReq, GetModulesNamesReq, GetModulesNamesRes, GetModulesReq, GetModulesRes,
-    GetSummaryReq, GetSummaryRes,
+    AddLectureReq, AddModuleReq, DeleteLectureReq, GetModulesNamesReq, GetModulesNamesRes,
+    GetModulesReq, GetModulesRes, GetSummaryReq, GetSummaryRes,
 };
 use crate::repository::MetadataServicer;
 use tonic::{Request, Response, Status};
 
 #[tonic::async_trait]
 impl MetadataService for MetadataServicer {
+    async fn add_module(&self, _request: Request<AddModuleReq>) -> Result<Response<()>, Status> {
+        todo!()
+    }
+
+    async fn add_lecture(&self, _request: Request<AddLectureReq>) -> Result<Response<()>, Status> {
+        todo!()
+    }
+
     /// Gets the names of all the modules saved in the database.
     async fn get_modules_names(
         &self,
