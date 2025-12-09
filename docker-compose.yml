@@ -63,8 +63,24 @@ services:
       timeout: 3s
       retries: 10
       start_period: 5s
+
+  metadata-db:
+    image: mongodb/mongodb-community-server:latest
+    container_name: metadatadb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb:/data/db
+    
+
+
     
 
 networks:
   lecture-rag-network:
     driver: bridge
+
+volumes:
+  mongodb:
+    external: true
