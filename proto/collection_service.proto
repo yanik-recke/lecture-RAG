@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package collectionservice;
+
+service CollectionService {
+  rpc GetAllCollections(GetAllCollectionsReq) returns (GetAllCollectionsRes);
+}
+
+message Collection {
+  string name = 1;
+  repeated LectureSummary lecture_summaries = 2;
+}
+
+message LectureSummary {
+  string lecture_name = 1;
+  string summary = 2;
+}
+
+message GetAllCollectionsReq {
+
+}
+
+message GetAllCollectionsRes {
+  repeated Collection collections = 1;
+}
