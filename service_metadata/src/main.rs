@@ -1,17 +1,15 @@
-use crate::metadataservice::metadata_service_server::{MetadataService, MetadataServiceServer};
-use crate::metadataservice::{
-    DeleteLectureReq, GetModulesNamesReq, GetModulesNamesRes, GetModulesReq, GetModulesRes,
-    GetSummaryReq, GetSummaryRes, MetadataLecture, MetadataModule,
-};
+mod models;
+mod repository;
+mod service;
+
+use crate::metadataservice::metadata_service_server::MetadataServiceServer;
+use crate::models::{MongoMetadataLecture, MongoMetadataModule};
+use crate::repository::MetadataServicer;
 use anyhow::{Context, Result};
-use log::{info, warn};
-use mongodb::bson::doc;
+use log::info;
 use mongodb::{Client, Collection};
-use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
-use tonic::codegen::tokio_stream::StreamExt;
 use tonic::transport::Server;
-use tonic::{Request, Response, Status};
 
 pub mod metadataservice {
     tonic::include_proto!("metadataservice");
@@ -53,137 +51,4 @@ async fn main() -> Result<()> {
         .context("Could not build server")?;
 
     Ok(())
-}
-
-struct MetadataServicer {
-    module_coll: Collection<MongoMetadataModule>,
-    lecture_coll: Collection<MongoMetadataLecture>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct MongoMetadataModule {
-    name: String,
-    lectures: Vec<MongoMetadataLecture>,
-}
-
-impl From<MongoMetadataModule> for MetadataModule {
-    fn from(value: MongoMetadataModule) -> Self {
-        MetadataModule {
-            name: value.name,
-            lectures: value.lectures.into_iter().map(|l| l.into()).collect(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct MongoMetadataLecture {
-    name: String,
-    lecture_id: String,
-    summary: String,
-}
-
-impl From<MongoMetadataLecture> for MetadataLecture {
-    fn from(value: MongoMetadataLecture) -> Self {
-        MetadataLecture {
-            name: value.name,
-            lecture_id: value.lecture_id,
-            summary: value.summary,
-        }
-    }
-}
-
-impl MetadataServicer {
-    pub fn new(
-        module_coll: Collection<MongoMetadataModule>,
-        lecture_coll: Collection<MongoMetadataLecture>,
-    ) -> Self {
-        MetadataServicer {
-            module_coll,
-            lecture_coll,
-        }
-    }
-
-    async fn fetch_module_names(&self) -> Result<Vec<String>, mongodb::error::Error> {
-        let mut cursor = self.module_coll.find(doc! {}).await?;
-        let mut names = Vec::new();
-
-        while let Some(result) = cursor.next().await {
-            names.push(result?.name);
-        }
-
-        Ok(names)
-    }
-
-    async fn fetch_modules(&self) -> Result<Vec<MetadataModule>, mongodb::error::Error> {
-        let mut cursor = self.module_coll.find(doc! {}).await?;
-        let mut modules = Vec::new();
-
-        while let Some(result) = cursor.next().await {
-            modules.push(MetadataModule::from(result?))
-        }
-
-        Ok(modules)
-    }
-
-    async fn delete_lecture(&self, lecture_id: String) -> Result<(), mongodb::error::Error> {
-        let res = self
-            .lecture_coll
-            .delete_one(doc! {"lecture_id": lecture_id.clone()})
-            .await?;
-
-        if (res.deleted_count != 1) {
-            warn!("Did not delete lecture with Id {}", lecture_id);
-        }
-
-        Ok(())
-    }
-}
-
-#[tonic::async_trait]
-impl MetadataService for MetadataServicer {
-    /// Gets the names of all the modules saved in the database.
-    async fn get_modules_names(
-        &self,
-        _: Request<GetModulesNamesReq>,
-    ) -> Result<Response<GetModulesNamesRes>, Status> {
-        let names = self
-            .fetch_module_names()
-            .await
-            .map_err(|e| Status::internal(format!("Could not retrieve module names: {}", e)))?;
-
-        Ok(Response::new(GetModulesNamesRes { names }))
-    }
-
-    /// Get all modules, including the lectures
-    async fn get_modules(
-        &self,
-        _: Request<GetModulesReq>,
-    ) -> Result<Response<GetModulesRes>, Status> {
-        let modules = self
-            .fetch_modules()
-            .await
-            .map_err(|e| Status::internal(format!("Could not retrieve modules: {}", e)))?;
-
-        Ok(Response::new(GetModulesRes { modules }))
-    }
-
-    /// Get the specific summary of a lecture
-    async fn get_summary(
-        &self,
-        request: Request<GetSummaryReq>,
-    ) -> Result<Response<GetSummaryRes>, Status> {
-        todo!()
-    }
-
-    /// Delete a lecture by its ID
-    async fn delete_lecture(
-        &self,
-        request: Request<DeleteLectureReq>,
-    ) -> Result<Response<()>, Status> {
-        self.delete_lecture(request.into_inner().lecture_id)
-            .await
-            .map_err(|e| Status::internal(format!("Could not delete lecture {}", e)))?;
-
-        Ok(Response::new(()))
-    }
 }
