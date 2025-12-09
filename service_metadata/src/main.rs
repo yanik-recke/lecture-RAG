@@ -4,7 +4,7 @@ use crate::metadataservice::{
     GetSummaryReq, GetSummaryRes, MetadataLecture, MetadataModule,
 };
 use anyhow::{Context, Result};
-use log::info;
+use log::{info, warn};
 use mongodb::bson::doc;
 use mongodb::{Client, Collection};
 use serde::{Deserialize, Serialize};
@@ -124,6 +124,19 @@ impl MetadataServicer {
 
         Ok(modules)
     }
+
+    async fn delete_lecture(&self, lecture_id: String) -> Result<(), mongodb::error::Error> {
+        let res = self
+            .lecture_coll
+            .delete_one(doc! {"lecture_id": lecture_id.clone()})
+            .await?;
+
+        if (res.deleted_count != 1) {
+            warn!("Did not delete lecture with Id {}", lecture_id);
+        }
+
+        Ok(())
+    }
 }
 
 #[tonic::async_trait]
@@ -167,6 +180,10 @@ impl MetadataService for MetadataServicer {
         &self,
         request: Request<DeleteLectureReq>,
     ) -> Result<Response<()>, Status> {
-        todo!()
+        self.delete_lecture(request.into_inner().lecture_id)
+            .await
+            .map_err(|e| Status::internal(format!("Could not delete lecture {}", e)))?;
+
+        Ok(Response::new(()))
     }
 }
