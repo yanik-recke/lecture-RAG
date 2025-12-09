@@ -1,0 +1,20 @@
+[package]
+name = "service_metadata"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tonic = "0.14.2"
+log = "0.4.28"
+env_logger = "0.11.8"
+tokio = { version = "1.48.0", features = ["rt-multi-thread", "macros"] }
+anyhow = "1.0.100"
+mongodb = "3.4.1"
+serde = "1.0.228"
+futures = "0.3.31"
+tonic-prost = "0.14.2"
+prost = "0.14.1"
+uuid = { version = "1.19.0", features = ["v4"] }
+
+[build-dependencies]
+tonic-prost-build = "0.14.2"

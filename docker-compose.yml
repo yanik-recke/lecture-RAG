@@ -72,6 +72,28 @@ services:
       - "27017:27017"
     volumes:
       - mongodb:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - lecture-rag-network
+
+  metadata-service:
+    image: metadata-service:latest
+    container_name: metadataservice
+    restart: unless-stopped
+    environment:
+      - RUST_LOG=DEBUG
+      - METADATA_SERVICE_HOST=0.0.0.0
+      - METADATA_SERVICE_PORT=40042
+      - METADATA_DB_URI=mongodb://metadata-db:27017/
+      - METADATA_DB_NAME=lecture_metadata
+      - METADATA_LECTURE_NAME=lectures
+      - METADATA_MODULE_NAME=modules
+    ports:
+      - "40042:40042"
+    networks:
+      - lecture-rag-network
+    depends_on:
+      - metadata-db    
     
 
 

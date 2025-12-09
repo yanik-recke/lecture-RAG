@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package metadataservice;
+
+import "google/protobuf/empty.proto";
+
+service MetadataService {
+  rpc AddModule(AddModuleReq) returns (google.protobuf.Empty);
+  rpc AddLecture(AddLectureReq) returns (google.protobuf.Empty);
+  rpc GetModulesNames(GetModulesNamesReq) returns (GetModulesNamesRes);
+  rpc GetModules(GetModulesReq) returns (GetModulesRes);
+  rpc GetSummary(GetSummaryReq) returns (GetSummaryRes);
+  rpc DeleteLecture(DeleteLectureReq) returns (google.protobuf.Empty);
+}
+
+message AddModuleReq {
+  string name = 1;
+}
+
+message AddLectureReq {
+  string name = 1;
+  string summary = 2;
+  string module_name = 3;
+}
+
+message GetModulesNamesReq {
+  
+}
+
+message GetModulesNamesRes {
+  repeated string names = 1;
+}
+
+message GetModulesReq {
+
+}
+
+message GetModulesRes {
+  repeated MetadataModule modules = 1;
+}
+
+message MetadataModule {
+  string name = 1;
+  repeated MetadataLecture lectures = 2;
+}
+
+message MetadataLecture {
+  string name = 1;
+  string lecture_id = 2;
+  string summary = 3;
+}
+
+message GetSummaryReq {
+  string lecture_id = 1;
+}
+
+message GetSummaryRes {
+  string summary = 1;
+}
+
+message DeleteLectureReq {
+  string lecture_id = 1;
+}
