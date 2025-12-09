@@ -72,6 +72,9 @@ services:
       - "27017:27017"
     volumes:
       - mongodb:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - lecture-rag-network
     
 
 

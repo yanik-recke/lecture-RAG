@@ -7,6 +7,11 @@ use service_metadata::repository::MetadataServicer;
 use std::net::SocketAddr;
 use tonic::transport::Server;
 
+/// Service to communicate with the metadata DB
+/// If the metadata DB is not reachable this service should
+/// also not start
+///
+/// @author Yanik Recke
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::init();
@@ -18,15 +23,17 @@ async fn main() -> Result<()> {
 
     let db_uri = std::env::var("METADATA_DB_URI").context("METADATA_DB_URI must be set")?;
     let db_name = std::env::var("METADATA_DB_NAME").context("METADATA_DB_NAME must be set")?;
-    let db_coll = std::env::var("METADATA_DB_COLL").context("METADATA_DB_COLL must be set")?;
-
+    let lecture_coll =
+        std::env::var("METADATA_LECTURE_NAME").context("METADATA_DB_COLL must be set")?;
+    let module_coll =
+        std::env::var("METADATA_MODULE_NAME").context("METADATA_DB_COLL must be set")?;
     let client = Client::with_uri_str(db_uri).await?;
 
     let database = client.database(&*db_name);
 
-    let module_coll: Collection<MongoMetadataModule> = database.collection(&*db_coll);
+    let module_coll: Collection<MongoMetadataModule> = database.collection(&*module_coll);
 
-    let lecture_coll: Collection<MongoMetadataLecture> = database.collection(&*db_coll);
+    let lecture_coll: Collection<MongoMetadataLecture> = database.collection(&*lecture_coll);
 
     let metadata_servicer = MetadataServicer::new(module_coll, lecture_coll);
 

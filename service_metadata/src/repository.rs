@@ -22,6 +22,8 @@ impl MetadataServicer {
         }
     }
 
+    /// Adds a module, if a module with that name already
+    /// exists, an error is thrown
     pub async fn add_new_module(&self, name: String) -> anyhow::Result<(), mongodb::error::Error> {
         let module = MongoMetadataModule { name };
 
@@ -30,6 +32,8 @@ impl MetadataServicer {
         Ok(())
     }
 
+    /// Adds a new lecture, if no module
+    /// with the passed name exists, one is created
     pub async fn add_new_lecture(
         &self,
         name: String,
@@ -39,11 +43,11 @@ impl MetadataServicer {
         // If no collection with that name exists, create one
         if self
             .module_coll
-            .find_one(doc! {"name": name.clone()})
+            .find_one(doc! {"name": module_name.clone()})
             .await?
             .is_none()
         {
-            self.add_new_module(name.clone()).await?;
+            self.add_new_module(module_name.clone()).await?;
         }
 
         // Create lecture object and insert into collection
@@ -83,7 +87,7 @@ impl MetadataServicer {
 
             let mut lecture_cursor = self
                 .lecture_coll
-                .find(doc! {"module_id": module_name.clone()})
+                .find(doc! {"module_name": module_name.clone()})
                 .await?;
 
             let mut lectures = Vec::new();

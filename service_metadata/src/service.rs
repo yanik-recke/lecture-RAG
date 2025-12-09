@@ -8,12 +8,30 @@ use tonic::{Request, Response, Status};
 
 #[tonic::async_trait]
 impl MetadataService for MetadataServicer {
+    /// Adds a module to the metadata db
     async fn add_module(&self, _request: Request<AddModuleReq>) -> Result<Response<()>, Status> {
-        todo!()
+        let name = _request.into_inner().name;
+
+        self.add_new_module(name)
+            .await
+            .map_err(|e| Status::internal(format!("Could not add module {}", e)))?;
+
+        Ok(Response::new(()))
     }
 
+    /// Adds a lecture to the metadata db
     async fn add_lecture(&self, _request: Request<AddLectureReq>) -> Result<Response<()>, Status> {
-        todo!()
+        let add_lecture_req = _request.into_inner();
+
+        self.add_new_lecture(
+            add_lecture_req.name,
+            add_lecture_req.module_name,
+            add_lecture_req.summary,
+        )
+        .await
+        .map_err(|e| Status::internal(format!("Failed to add lecture {}", e)))?;
+
+        Ok(Response::new(()))
     }
 
     /// Gets the names of all the modules saved in the database.
