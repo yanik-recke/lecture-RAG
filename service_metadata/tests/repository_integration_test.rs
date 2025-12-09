@@ -1,21 +1,40 @@
 use anyhow::{Context, Error};
+use mongodb::bson::doc;
 use mongodb::{Client, Collection};
 use service_metadata::models::{MongoMetadataLecture, MongoMetadataModule};
 use service_metadata::repository::MetadataServicer;
 
 async fn init() -> Result<MetadataServicer, Error> {
     let client = Client::with_uri_str("mongodb://localhost:27017/").await?;
-    let database = client.database(&*"test_db");
+    let database = client.database(&*"lecture_metadata");
 
-    let module_coll: Collection<MongoMetadataModule> = database.collection(&*"test_modules");
-    let lecture_coll: Collection<MongoMetadataLecture> = database.collection(&*"test_lectures");
+    let module_coll: Collection<MongoMetadataModule> = database.collection(&*"modules");
+    let lecture_coll: Collection<MongoMetadataLecture> = database.collection(&*"lectures");
+
+    // Clear the collections
+    module_coll.delete_many(doc! {}).await?;
+    lecture_coll.delete_many(doc! {}).await?;
 
     Ok(MetadataServicer::new(module_coll, lecture_coll))
 }
 
 #[tokio::test]
+async fn test_adding_module_duplicate_name() {
+    let servicer = init().await.context("Failed to create servicer").unwrap();
+    servicer
+        .add_new_module("Mod 66".to_string())
+        .await
+        .context("Failed to add module")
+        .unwrap();
+
+    servicer
+        .add_new_module("Mod 66".to_string())
+        .await
+        .unwrap_err();
+}
+
+#[tokio::test]
 async fn test_fetch_module_names() {
-    env_logger::builder().is_test(true).try_init().ok();
     let servicer = init().await.context("Failed to create servicer").unwrap();
 
     let initial_module_len = servicer
