@@ -29,10 +29,10 @@ message GetModulesRes {
 
 message MetadataModule {
   string name = 1;
-  repeated Lecture lectures = 2;
+  repeated MetadataLecture lectures = 2;
 }
 
-message Lecture {
+message MetadataLecture {
   string name = 1;
   string lecture_id = 2;
   string summary = 3;

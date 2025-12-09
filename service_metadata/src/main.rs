@@ -1,14 +1,15 @@
 use crate::metadataservice::metadata_service_server::{MetadataService, MetadataServiceServer};
 use crate::metadataservice::{
     DeleteLectureReq, GetModulesNamesReq, GetModulesNamesRes, GetModulesReq, GetModulesRes,
-    GetSummaryReq, GetSummaryRes,
+    GetSummaryReq, GetSummaryRes, MetadataLecture, MetadataModule,
 };
 use anyhow::{Context, Result};
 use log::info;
-use mongodb::bson::Document;
+use mongodb::bson::doc;
 use mongodb::{Client, Collection};
-use std::fs::metadata;
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+use tonic::codegen::tokio_stream::StreamExt;
 use tonic::transport::Server;
 use tonic::{Request, Response, Status};
 
@@ -18,7 +19,7 @@ pub mod metadataservice {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("Hello, world!");
+    env_logger::init();
 
     let host =
         std::env::var("METADATA_SERVICE_HOST").context("METADATA_SERVICE_HOST must be set")?;
@@ -33,9 +34,11 @@ async fn main() -> Result<()> {
 
     let database = client.database(&*db_name);
 
-    let metadata_coll: Collection<Document> = database.collection(&*db_coll);
+    let module_coll: Collection<MongoMetadataModule> = database.collection(&*db_coll);
 
-    let metadata_servicer = MetadataServicer::new(metadata_coll);
+    let lecture_coll: Collection<MongoMetadataLecture> = database.collection(&*db_coll);
+
+    let metadata_servicer = MetadataServicer::new(module_coll, lecture_coll);
 
     let addr: SocketAddr = format!("{}:{}", host, port)
         .parse()
@@ -53,31 +56,105 @@ async fn main() -> Result<()> {
 }
 
 struct MetadataServicer {
-    metadata_coll: mongodb::Collection<Document>,
+    module_coll: Collection<MongoMetadataModule>,
+    lecture_coll: Collection<MongoMetadataLecture>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MongoMetadataModule {
+    name: String,
+    lectures: Vec<MongoMetadataLecture>,
+}
+
+impl From<MongoMetadataModule> for MetadataModule {
+    fn from(value: MongoMetadataModule) -> Self {
+        MetadataModule {
+            name: value.name,
+            lectures: value.lectures.into_iter().map(|l| l.into()).collect(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MongoMetadataLecture {
+    name: String,
+    lecture_id: String,
+    summary: String,
+}
+
+impl From<MongoMetadataLecture> for MetadataLecture {
+    fn from(value: MongoMetadataLecture) -> Self {
+        MetadataLecture {
+            name: value.name,
+            lecture_id: value.lecture_id,
+            summary: value.summary,
+        }
+    }
 }
 
 impl MetadataServicer {
-    pub fn new(metadata_coll: Collection<Document>) -> Self {
-        MetadataServicer { metadata_coll }
+    pub fn new(
+        module_coll: Collection<MongoMetadataModule>,
+        lecture_coll: Collection<MongoMetadataLecture>,
+    ) -> Self {
+        MetadataServicer {
+            module_coll,
+            lecture_coll,
+        }
+    }
+
+    async fn fetch_module_names(&self) -> Result<Vec<String>, mongodb::error::Error> {
+        let mut cursor = self.module_coll.find(doc! {}).await?;
+        let mut names = Vec::new();
+
+        while let Some(result) = cursor.next().await {
+            names.push(result?.name);
+        }
+
+        Ok(names)
+    }
+
+    async fn fetch_modules(&self) -> Result<Vec<MetadataModule>, mongodb::error::Error> {
+        let mut cursor = self.module_coll.find(doc! {}).await?;
+        let mut modules = Vec::new();
+
+        while let Some(result) = cursor.next().await {
+            modules.push(MetadataModule::from(result?))
+        }
+
+        Ok(modules)
     }
 }
 
 #[tonic::async_trait]
 impl MetadataService for MetadataServicer {
+    /// Gets the names of all the modules saved in the database.
     async fn get_modules_names(
         &self,
-        request: Request<GetModulesNamesReq>,
+        _: Request<GetModulesNamesReq>,
     ) -> Result<Response<GetModulesNamesRes>, Status> {
-        todo!()
+        let names = self
+            .fetch_module_names()
+            .await
+            .map_err(|e| Status::internal(format!("Could not retrieve module names: {}", e)))?;
+
+        Ok(Response::new(GetModulesNamesRes { names }))
     }
 
+    /// Get all modules, including the lectures
     async fn get_modules(
         &self,
-        request: Request<GetModulesReq>,
+        _: Request<GetModulesReq>,
     ) -> Result<Response<GetModulesRes>, Status> {
-        todo!()
+        let modules = self
+            .fetch_modules()
+            .await
+            .map_err(|e| Status::internal(format!("Could not retrieve modules: {}", e)))?;
+
+        Ok(Response::new(GetModulesRes { modules }))
     }
 
+    /// Get the specific summary of a lecture
     async fn get_summary(
         &self,
         request: Request<GetSummaryReq>,
@@ -85,6 +162,7 @@ impl MetadataService for MetadataServicer {
         todo!()
     }
 
+    /// Delete a lecture by its ID
     async fn delete_lecture(
         &self,
         request: Request<DeleteLectureReq>,
