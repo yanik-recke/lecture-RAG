@@ -76,8 +76,8 @@
                 <configuration>
                     <protocVersion>${protobuf-java.version}</protocVersion>
                     <sourceDirectories>
-<!--                        <directory>/Users/yanik/_repos/lecture-RAG/proto</directory>-->
-                        <directory>/app/proto</directory>
+                        <directory>/Users/yanik/_repos/lecture-RAG/proto</directory>
+<!--                        <directory>/app/proto</directory>-->
                     </sourceDirectories>
                     <binaryMavenPlugins>
                         <binaryMavenPlugin>

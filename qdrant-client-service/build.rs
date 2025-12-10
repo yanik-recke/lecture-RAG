@@ -1,5 +1,8 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_prost_build::configure().compile_protos(&["proto/lecture_store.proto"], &["proto"])?;
-    println!("Built!");
+    let proto_path = std::env::var("PROTO_PATH").unwrap_or_else(|_| "../proto".to_string());
+
+    tonic_prost_build::configure()
+        .protoc_arg(format!("-I={}", proto_path))
+        .compile_protos(&["lecture_store.proto"], &["proto"])?;
     Ok(())
 }

@@ -1,6 +1,6 @@
 openapi: "3.1.0"
 info:
-  title: "bff API"
+  title: "BFF API"
   description: "bff API"
   version: "1.0.0"
 servers:
@@ -51,6 +51,41 @@ paths:
             '*/*':
               schema:
                 type: "string"
+  /api/v1/moduleNames:
+    get:
+      summary: Get the names of all the saved modules
+      operationId: moduleNames
+      responses:
+        "200":
+          description: "OK"
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/ModuleNamesResponse"
+  /api/v1/modules:
+    get:
+      summary: Get all the modules, including the lectures
+      operationId: modules
+      responses:
+        "200":
+          description: "OK"
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/ModulesResponse"
+  /api/v1/lectures/{lectureId}:
+    delete:
+      summary: Delete a lecture by its ID
+      operationId: lectureDeletion
+      parameters:
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "OK"
 components:
   schemas:
     SearchRequest:
@@ -60,3 +95,35 @@ components:
           type: "string"
         module:
           type: "string"
+    ModuleNamesResponse:
+      type: "object"
+      properties:
+        names:
+          type: array
+          items:
+            type: string
+    ModulesResponse:
+      type: "object"
+      properties:
+        modules:
+          type: array
+          items:
+            $ref: "#/components/schemas/Module"
+    Module:
+      type: object
+      properties:
+        name:
+          type: string
+        lectures:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lecture"
+    Lecture:
+      type: object
+      properties:
+        lecture_id:
+          type: string
+        name:
+          type: string
+        summary:
+          type: string
